@@ -6,8 +6,15 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C0432F98308EB5FB003C8A6D /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0432F96308EB5EC003C8A6D /* AVKit.framework */; };
+		C0E15D0A308EACAA00DF7486 /* marbles.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = C0E15D09308EACAA00DF7486 /* marbles.mp4 */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* VideoPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0432F96308EB5EC003C8A6D /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		C0E15D09308EACAA00DF7486 /* marbles.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = marbles.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -22,6 +29,7 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				C0432F98308EB5FB003C8A6D /* AVKit.framework in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -31,6 +39,8 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* VideoPlayer */,
+				C0E15D09308EACAA00DF7486 /* marbles.mp4 */,
+				C0432F95308EB5EC003C8A6D /* Frameworks */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +51,14 @@
 				000000000000000000000120 /* VideoPlayer.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C0432F95308EB5EC003C8A6D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C0432F96308EB5EC003C8A6D /* AVKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,6 +120,7 @@
 		000000000000000140000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				C0E15D0A308EACAA00DF7486 /* marbles.mp4 in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
