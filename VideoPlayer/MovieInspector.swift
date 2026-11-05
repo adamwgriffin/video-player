@@ -21,7 +21,7 @@ struct MovieInspector: View {
               Text(description)
                 .font(.caption)
                 .multilineTextAlignment(.center)
-                // Lets the text wrap onto as many lines as it needs.
+              // Lets the text wrap onto as many lines as it needs.
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
             }
@@ -29,7 +29,11 @@ struct MovieInspector: View {
 
           Divider()
 
-          Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 12, verticalSpacing: 6) {
+          Grid(
+            alignment: .leadingFirstTextBaseline,
+            horizontalSpacing: 12,
+            verticalSpacing: 6
+          ) {
             row("Video Format", info.videoCodec ?? "Unknown")
             row("Audio Format", audioFormat(of: info))
             row("Resolution", size(of: info))
@@ -64,7 +68,9 @@ struct MovieInspector: View {
   /// The audio codec and sample rate, such as "MPEG-4 AAC, 48000 Hz".
   private func audioFormat(of info: VideoInfo) -> String {
     guard let codec = info.audioCodec else { return "None" }
-    guard let sampleRate = info.audioSampleRate, sampleRate > 0 else { return codec }
+    guard let sampleRate = info.audioSampleRate, sampleRate > 0 else {
+      return codec
+    }
     return "\(codec), \(Int(sampleRate)) Hz"
   }
 
@@ -76,7 +82,9 @@ struct MovieInspector: View {
   /// The shape of the picture, such as 16:9. Sizes that don't reduce to small
   /// numbers, like 1366 × 768, are shown as a decimal instead (1.78:1).
   private func aspectRatio(of info: VideoInfo) -> String {
-    guard let size = info.pixelSize, size.width > 0, size.height > 0 else { return "Unknown" }
+    guard let size = info.pixelSize, size.width > 0, size.height > 0 else {
+      return "Unknown"
+    }
 
     let width = Int(size.width)
     let height = Int(size.height)
@@ -95,7 +103,9 @@ struct MovieInspector: View {
   }
 
   private func duration(of info: VideoInfo) -> String {
-    Duration.seconds(Int(info.duration)).formatted(.time(pattern: .hourMinuteSecond))
+    Duration
+      .seconds(Int(info.duration))
+      .formatted(.time(pattern: .hourMinuteSecond))
   }
 
   private func frameRate(of info: VideoInfo) -> String {
@@ -108,6 +118,9 @@ struct MovieInspector: View {
   }
 
   private func dataRate(of info: VideoInfo) -> String {
-    info.dataRate > 0 ? String(format: "%.1f Mbps", info.dataRate / 1_000_000) : "Unknown"
+    info.dataRate > 0 ? String(
+      format: "%.1f Mbps",
+      info.dataRate / 1_000_000
+    ) : "Unknown"
   }
 }

@@ -1,5 +1,5 @@
-import SwiftUI
 import AVKit
+import SwiftUI
 
 /// Play/pause button, elapsed and total time, and the seek bar.
 struct PlaybackControls: View {
@@ -113,7 +113,9 @@ struct SeekBar: View {
     .frame(height: 20)
     .accessibilityElement()
     .accessibilityLabel("Playback position")
-    .accessibilityValue(Text(playbackFraction, format: .percent.precision(.fractionLength(0))))
+    .accessibilityValue(
+      Text(playbackFraction, format: .percent.precision(.fractionLength(0)))
+    )
     .accessibilityAdjustableAction { direction in
       switch direction {
       case .increment: player.seek(toFraction: playbackFraction + 0.05)

@@ -29,14 +29,21 @@ struct VideoInfo {
 
     if let track = try? await asset.loadTracks(withMediaType: .video).first {
       if let descriptions = try? await track.load(.formatDescriptions),
-         let description = descriptions.first {
+        let description = descriptions.first
+      {
         videoCodec = codecName(CMFormatDescriptionGetMediaSubType(description))
       }
-      if let (naturalSize, transform) = try? await track.load(.naturalSize, .preferredTransform) {
+      if let (naturalSize, transform) = try? await track.load(
+        .naturalSize,
+        .preferredTransform
+      ) {
         let size = naturalSize.applying(transform)
         pixelSize = CGSize(width: abs(size.width), height: abs(size.height))
       }
-      if let (rate, bitRate) = try? await track.load(.nominalFrameRate, .estimatedDataRate) {
+      if let (rate, bitRate) = try? await track.load(
+        .nominalFrameRate,
+        .estimatedDataRate
+      ) {
         frameRate = rate
         dataRate = bitRate
       }
@@ -45,10 +52,13 @@ struct VideoInfo {
     var audioCodec: String?
     var audioSampleRate: Double?
     if let track = try? await asset.loadTracks(withMediaType: .audio).first,
-       let descriptions = try? await track.load(.formatDescriptions),
-       let description = descriptions.first {
+      let descriptions = try? await track.load(.formatDescriptions),
+      let description = descriptions.first
+    {
       audioCodec = codecName(CMFormatDescriptionGetMediaSubType(description))
-      audioSampleRate = CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee.mSampleRate
+      audioSampleRate =
+        CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee
+        .mSampleRate
     }
 
     let duration = (try? await asset.load(.duration).seconds) ?? 0
@@ -77,7 +87,9 @@ struct VideoInfo {
 
   /// The first non-empty description found. Different tools store it under
   /// different keys, so this tries the common ones in turn.
-  private static func description(in metadata: [AVMetadataItem]) async -> String? {
+  private static func description(in metadata: [AVMetadataItem]) async
+    -> String?
+  {
     let identifiers: [AVMetadataIdentifier] = [
       .quickTimeUserDataDescription,
       .commonIdentifierDescription,
@@ -86,7 +98,10 @@ struct VideoInfo {
       .id3MetadataComments,
     ]
     for identifier in identifiers {
-      for item in AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: identifier) {
+      for item in AVMetadataItem.metadataItems(
+        from: metadata,
+        filteredByIdentifier: identifier
+      ) {
         if let value = try? await item.load(.stringValue), !value.isEmpty {
           return value
         }
@@ -98,10 +113,11 @@ struct VideoInfo {
   /// A readable name for a codec, or its four-character code if it's one this
   /// doesn't recognize.
   private static func codecName(_ code: FourCharCode) -> String {
-    let fourCC = String(
-      bytes: [24, 16, 8, 0].map { UInt8((code >> $0) & 0xff) },
-      encoding: .macOSRoman
-    ) ?? ""
+    let fourCC =
+      String(
+        bytes: [24, 16, 8, 0].map { UInt8((code >> $0) & 0xff) },
+        encoding: .macOSRoman
+      ) ?? ""
 
     switch fourCC {
     case "avc1", "avc3": return "H.264"

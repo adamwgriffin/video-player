@@ -1,5 +1,5 @@
-import SwiftUI
 import AVKit
+import SwiftUI
 import UniformTypeIdentifiers
 
 /// Holds the one video the app is showing. Opening another video replaces it.
@@ -139,7 +139,9 @@ final class LoopingPlayer {
     generator.requestedTimeToleranceAfter = .zero
 
     do {
-      let (cgImage, _) = try await generator.image(at: queuePlayer.currentTime())
+      let (cgImage, _) = try await generator.image(
+        at: queuePlayer.currentTime()
+      )
       let image = NSImage(cgImage: cgImage, size: .zero)
       let pasteboard = NSPasteboard.general
       pasteboard.clearContents()

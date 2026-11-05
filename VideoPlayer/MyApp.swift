@@ -17,7 +17,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // The system adds these to every Edit menu on its own. They're no use
     // here, so ask it to leave them out.
     UserDefaults.standard.set(true, forKey: "NSDisabledDictationMenuItem")
-    UserDefaults.standard.set(true, forKey: "NSDisabledCharacterPaletteMenuItem")
+    UserDefaults.standard.set(
+      true,
+      forKey: "NSDisabledCharacterPaletteMenuItem"
+    )
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
@@ -92,7 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   /// Hides the pointer after the mouse has been still for a couple of seconds.
   /// The system shows it again as soon as the mouse moves.
   private func startHidingCursorWhenIdle() {
-    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved)
+    { [weak self] event in
       MainActor.assumeIsolated { self?.scheduleCursorHide() }
       return event
     }
@@ -212,7 +216,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         // As in QuickTime Player, Cmd-I shows details about the video.
         CommandGroup(after: .windowArrangement) {
-          Button(VideoModel.shared.isInspectorShown ? "Hide Movie Inspector" : "Show Movie Inspector") {
+          Button(
+            VideoModel.shared.isInspectorShown
+              ? "Hide Movie Inspector" : "Show Movie Inspector"
+          ) {
             appDelegate.toggleInspector()
           }
           .keyboardShortcut("i")
@@ -221,7 +228,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // A menu shortcut works whichever view has focus, so the space bar
         // always toggles playback, as it does in the built-in controls.
         CommandMenu("Playback") {
-          Button(VideoModel.shared.player?.isPlaying == true ? "Pause" : "Play") {
+          Button(VideoModel.shared.player?.isPlaying == true ? "Pause" : "Play")
+          {
             VideoModel.shared.player?.togglePlayback()
           }
           .keyboardShortcut(.space, modifiers: [])
