@@ -14,6 +14,9 @@ final class VideoModel {
   /// The video's file name without its extension, for the window title.
   private(set) var title = ""
 
+  /// Whether the window is full screen, when the controls are hidden.
+  var isFullScreen = false
+
   // The sandbox only grants access to a chosen file while this is held open.
   private var accessedURL: URL?
   private var currentURL: URL?
@@ -60,12 +63,76 @@ final class VideoModel {
 
 /// Owns the queue player and the looper. AVPlayerLooper must be retained
 /// for as long as looping should continue.
+/// It also publishes the playback state that the custom controls display.
+@Observable
 final class LoopingPlayer {
   let queuePlayer = AVQueuePlayer()
   private let looper: AVPlayerLooper
 
+  /// Seconds into the current pass through the video.
+  private(set) var currentTime: Double = 0
+  /// Length of the video in seconds, or 0 until it has loaded.
+  private(set) var duration: Double = 0
+  private(set) var isPlaying = false
+
+  @ObservationIgnored private var timeObserver: Any?
+
   init(url: URL) {
     let item = AVPlayerItem(url: url)
     looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+
+    Task {
+      let length = try? await item.asset.load(.duration).seconds
+      if let length, length.isFinite {
+        duration = length
+      }
+    }
+
+    // The observer is delivered on the main queue, so it's safe to update
+    // the main-actor state directly.
+    timeObserver = queuePlayer.addPeriodicTimeObserver(
+      forInterval: CMTime(seconds: 1.0 / 30.0, preferredTimescale: 600),
+      queue: .main
+    ) { [weak self] time in
+      MainActor.assumeIsolated {
+        guard let self else { return }
+        self.currentTime = time.seconds.isFinite ? time.seconds : 0
+        self.isPlaying = self.queuePlayer.rate != 0
+      }
+    }
+  }
+
+  deinit {
+    if let timeObserver {
+      queuePlayer.removeTimeObserver(timeObserver)
+    }
+  }
+
+  func togglePlayback() {
+    if queuePlayer.rate == 0 {
+      queuePlayer.play()
+    } else {
+      queuePlayer.pause()
+    }
+    isPlaying = queuePlayer.rate != 0
+  }
+
+  /// Moves forward by the given number of seconds, or back if it's negative,
+  /// stopping at the start or end of the video.
+  func skip(bySeconds seconds: Double) {
+    guard duration > 0 else { return }
+    seek(toFraction: (currentTime + seconds) / duration)
+  }
+
+  /// Jumps to a position in the video, where 0 is the start and 1 is the end.
+  func seek(toFraction fraction: Double) {
+    guard duration > 0 else { return }
+    let clamped = min(max(fraction, 0), 1)
+    currentTime = clamped * duration
+    queuePlayer.seek(
+      to: CMTime(seconds: currentTime, preferredTimescale: 600),
+      toleranceBefore: .zero,
+      toleranceAfter: .zero
+    )
   }
 }
