@@ -12,6 +12,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   override init() {
     super.init()
     VideoModel.shared.didOpen = { [weak self] in self?.showWindow() }
+
+    // The system adds these to every Edit menu on its own. They're no use
+    // here, so ask it to leave them out.
+    UserDefaults.standard.set(true, forKey: "NSDisabledDictationMenuItem")
+    UserDefaults.standard.set(true, forKey: "NSDisabledCharacterPaletteMenuItem")
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
@@ -135,6 +140,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         CommandGroup(replacing: .newItem) {
           Button("Open…") { VideoModel.shared.showOpenPanel() }
             .keyboardShortcut("o")
+        }
+        // There's nothing to edit, so remove the editing items from the Edit
+        // menu. That leaves only Copy.
+        CommandGroup(replacing: .undoRedo) {}
+        CommandGroup(replacing: .textEditing) {}
+        CommandGroup(replacing: .textFormatting) {}
+        // As in QuickTime Player, Edit > Copy puts the current frame on the
+        // clipboard as an image. There's no text or other content to copy.
+        CommandGroup(replacing: .pasteboard) {
+          Button("Copy") {
+            Task { await VideoModel.shared.player?.copyCurrentFrame() }
+          }
+          .keyboardShortcut("c")
+          .disabled(VideoModel.shared.player == nil)
         }
         // A menu shortcut works whichever view has focus, so the space bar
         // always toggles playback, as it does in the built-in controls.

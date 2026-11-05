@@ -68,6 +68,7 @@ final class VideoModel {
 final class LoopingPlayer {
   let queuePlayer = AVQueuePlayer()
   private let looper: AVPlayerLooper
+  private let asset: AVAsset
 
   /// Seconds into the current pass through the video.
   private(set) var currentTime: Double = 0
@@ -79,6 +80,7 @@ final class LoopingPlayer {
 
   init(url: URL) {
     let item = AVPlayerItem(url: url)
+    asset = item.asset
     looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
 
     Task {
@@ -115,6 +117,26 @@ final class LoopingPlayer {
       queuePlayer.pause()
     }
     isPlaying = queuePlayer.rate != 0
+  }
+
+  /// Copies the frame on screen to the clipboard as an image, at the video's
+  /// full resolution.
+  func copyCurrentFrame() async {
+    let generator = AVAssetImageGenerator(asset: asset)
+    generator.appliesPreferredTrackTransform = true
+    // Exactly the frame being shown, not the nearest keyframe.
+    generator.requestedTimeToleranceBefore = .zero
+    generator.requestedTimeToleranceAfter = .zero
+
+    do {
+      let (cgImage, _) = try await generator.image(at: queuePlayer.currentTime())
+      let image = NSImage(cgImage: cgImage, size: .zero)
+      let pasteboard = NSPasteboard.general
+      pasteboard.clearContents()
+      pasteboard.writeObjects([image])
+    } catch {
+      NSSound.beep()
+    }
   }
 
   /// Moves forward by the given number of seconds, or back if it's negative,
