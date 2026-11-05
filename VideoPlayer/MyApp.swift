@@ -6,6 +6,7 @@ import SwiftUI
 /// nothing is on screen when the app starts.
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var window: NSWindow?
+  private var inspectorPanel: NSPanel?
   private var mouseMovedMonitor: Any?
   private var cursorHideTask: Task<Void, Never>?
 
@@ -122,7 +123,61 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
   }
 
+  /// Shows the movie inspector, or hides it if it's already showing.
+  func toggleInspector() {
+    if let inspectorPanel, inspectorPanel.isVisible {
+      inspectorPanel.close()
+      return
+    }
+
+    if inspectorPanel == nil {
+      // A floating HUD panel: translucent and dark, and it stays above the
+      // video window.
+      let panel = NSPanel(
+        contentRect: .zero,
+        styleMask: [.titled, .closable, .utilityWindow, .hudWindow],
+        backing: .buffered,
+        defer: false
+      )
+      panel.title = "Inspector"
+      panel.isFloatingPanel = true
+      // A floating panel sits above every app's windows, so hide it whenever
+      // another app is in front, and it only floats over this app's windows.
+      panel.hidesOnDeactivate = true
+      panel.isReleasedWhenClosed = false
+      panel.contentViewController = NSHostingController(
+        rootView: MovieInspector(model: VideoModel.shared)
+      )
+      panel.delegate = self
+
+      // Beside the video window, level with its top right corner.
+      if let window {
+        let gap: CGFloat = 8
+        var x = window.frame.maxX + gap
+        // If there isn't room beside the window, slide back over it rather
+        // than hang off the edge of the screen.
+        if let screen = window.screen {
+          x = min(x, screen.visibleFrame.maxX - panel.frame.width)
+        }
+        panel.setFrameTopLeftPoint(NSPoint(x: x, y: window.frame.maxY))
+      } else {
+        panel.center()
+      }
+      inspectorPanel = panel
+    }
+
+    inspectorPanel?.orderFront(nil)
+    VideoModel.shared.isInspectorShown = true
+  }
+
   func windowWillClose(_ notification: Notification) {
+    if notification.object as? NSPanel === inspectorPanel {
+      VideoModel.shared.isInspectorShown = false
+      return
+    }
+
+    // The video window is closing, so there's nothing left to inspect.
+    inspectorPanel?.close()
     VideoModel.shared.close()
     window = nil
   }
@@ -153,6 +208,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             Task { await VideoModel.shared.player?.copyCurrentFrame() }
           }
           .keyboardShortcut("c")
+          .disabled(VideoModel.shared.player == nil)
+        }
+        // As in QuickTime Player, Cmd-I shows details about the video.
+        CommandGroup(after: .windowArrangement) {
+          Button(VideoModel.shared.isInspectorShown ? "Hide Movie Inspector" : "Show Movie Inspector") {
+            appDelegate.toggleInspector()
+          }
+          .keyboardShortcut("i")
           .disabled(VideoModel.shared.player == nil)
         }
         // A menu shortcut works whichever view has focus, so the space bar

@@ -17,6 +17,9 @@ final class VideoModel {
   /// Whether the window is full screen, when the controls are hidden.
   var isFullScreen = false
 
+  /// Whether the movie inspector panel is showing, for the menu item's title.
+  var isInspectorShown = false
+
   // The sandbox only grants access to a chosen file while this is held open.
   private var accessedURL: URL?
   private var currentURL: URL?
@@ -76,6 +79,9 @@ final class LoopingPlayer {
   private(set) var duration: Double = 0
   private(set) var isPlaying = false
 
+  /// Details for the movie inspector. Nil until they've loaded.
+  private(set) var info: VideoInfo?
+
   @ObservationIgnored private var timeObserver: Any?
 
   init(url: URL) {
@@ -88,6 +94,10 @@ final class LoopingPlayer {
       if let length, length.isFinite {
         duration = length
       }
+    }
+
+    Task {
+      info = await VideoInfo.load(from: url, asset: item.asset)
     }
 
     // The observer is delivered on the main queue, so it's safe to update
