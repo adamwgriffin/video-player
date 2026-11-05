@@ -1,4 +1,5 @@
 import SwiftUI
+import AVKit
 
 /// Play/pause button, elapsed and total time, and the seek bar.
 struct PlaybackControls: View {
@@ -23,6 +24,9 @@ struct PlaybackControls: View {
       Text(formatted(player.duration))
         .monospacedDigit()
 
+      AirPlayButton(player: player.queuePlayer)
+        .frame(width: 24, height: 20)
+
       Button {
         NSApp.keyWindow?.toggleFullScreen(nil)
       } label: {
@@ -39,6 +43,25 @@ struct PlaybackControls: View {
 
   private func formatted(_ seconds: Double) -> String {
     Duration.seconds(Int(seconds)).formatted(.time(pattern: .minuteSecond))
+  }
+}
+
+/// The system's AirPlay button. Clicking it lists nearby AirPlay devices, such
+/// as an Apple TV or speaker, to send the video to.
+struct AirPlayButton: NSViewRepresentable {
+  let player: AVPlayer
+
+  func makeNSView(context: Context) -> AVRoutePickerView {
+    let view = AVRoutePickerView()
+    view.isRoutePickerButtonBordered = false
+    view.player = player
+    return view
+  }
+
+  func updateNSView(_ view: AVRoutePickerView, context: Context) {
+    if view.player !== player {
+      view.player = player
+    }
   }
 }
 
