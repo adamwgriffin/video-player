@@ -216,7 +216,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // menu. That leaves only Copy.
         CommandGroup(replacing: .undoRedo) {}
         CommandGroup(replacing: .textEditing) {}
-        CommandGroup(replacing: .textFormatting) {}
         // As in QuickTime Player, Edit > Copy puts the current frame on the
         // clipboard as an image. There's no text or other content to copy.
         CommandGroup(replacing: .pasteboard) {
