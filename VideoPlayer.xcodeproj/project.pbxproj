@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		C0432F98308EB5FB003C8A6D /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0432F96308EB5EC003C8A6D /* AVKit.framework */; };
+		C07ED3BD309D935300CB334E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = C07ED3BC309D934B00CB334E /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* VideoPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0432F96308EB5EC003C8A6D /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		C07ED3BC309D934B00CB334E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -51,6 +53,7 @@
 			children = (
 				000000000000000000000010 /* VideoPlayer */,
 				C0432F95308EB5EC003C8A6D /* Frameworks */,
+				C07ED3BC309D934B00CB334E /* README.md */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +133,7 @@
 		000000000000000140000000 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				C07ED3BD309D935300CB334E /* README.md in Resources */,
 			);
 		};
 /* End PBXResourcesBuildPhase section */
