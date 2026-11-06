@@ -9,7 +9,7 @@ final class VideoModel {
   /// reach the same model the window displays.
   static let shared = VideoModel()
 
-  private(set) var player: LoopingPlayer?
+  private(set) var player: Player?
 
   /// The video's file name without its extension, for the window title.
   private(set) var title = ""
@@ -19,6 +19,12 @@ final class VideoModel {
 
   /// Whether the movie inspector panel is showing, for the menu item's title.
   var isInspectorShown = false
+
+  /// Whether videos start over when they reach the end. On by default, and
+  /// kept when another video is opened.
+  var isLooping = true {
+    didSet { player?.isLooping = isLooping }
+  }
 
   // The sandbox only grants access to a chosen file while this is held open.
   private var accessedURL: URL?
@@ -49,7 +55,7 @@ final class VideoModel {
     accessedURL?.stopAccessingSecurityScopedResource()
 
     accessedURL = url.startAccessingSecurityScopedResource() ? url : nil
-    player = LoopingPlayer(url: url)
+    player = Player(url: url, looping: isLooping)
     player?.queuePlayer.play()
     didOpen?()
   }
@@ -64,14 +70,15 @@ final class VideoModel {
   }
 }
 
-/// Owns the queue player and the looper. AVPlayerLooper must be retained
-/// for as long as looping should continue.
-/// It also publishes the playback state that the custom controls display.
+/// Owns the player, starts the video over when it ends if looping is on,
+/// and publishes the playback state that the custom controls display.
 @Observable
-final class LoopingPlayer {
+final class Player {
   let queuePlayer = AVQueuePlayer()
-  private let looper: AVPlayerLooper
   private let asset: AVAsset
+
+  /// Whether the video starts over when it reaches the end.
+  var isLooping: Bool
 
   /// Seconds into the current pass through the video.
   private(set) var currentTime: Double = 0
@@ -83,11 +90,27 @@ final class LoopingPlayer {
   private(set) var info: VideoInfo?
 
   @ObservationIgnored private var timeObserver: Any?
+  @ObservationIgnored private var endObserver: Task<Void, Never>?
 
-  init(url: URL) {
+  init(url: URL, looping: Bool) {
     let item = AVPlayerItem(url: url)
     asset = item.asset
-    looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+    isLooping = looping
+
+    // Stop on the last frame at the end, rather than removing the video from
+    // the player. Looping, when it's on, is handled in itemDidReachEnd().
+    queuePlayer.actionAtItemEnd = .pause
+    queuePlayer.insert(item, after: nil)
+
+    endObserver = Task { [weak self] in
+      let ends = NotificationCenter.default.notifications(
+        named: AVPlayerItem.didPlayToEndTimeNotification,
+        object: item
+      )
+      for await _ in ends {
+        self?.itemDidReachEnd()
+      }
+    }
 
     Task {
       let length = try? await item.asset.load(.duration).seconds
@@ -118,10 +141,24 @@ final class LoopingPlayer {
     if let timeObserver {
       queuePlayer.removeTimeObserver(timeObserver)
     }
+    endObserver?.cancel()
+  }
+
+  private func itemDidReachEnd() {
+    if isLooping {
+      queuePlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+      queuePlayer.play()
+    } else {
+      isPlaying = false
+    }
   }
 
   func togglePlayback() {
     if queuePlayer.rate == 0 {
+      // With looping off, playing again after the end starts from the top.
+      if let item = queuePlayer.currentItem, item.currentTime() >= item.duration {
+        queuePlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+      }
       queuePlayer.play()
     } else {
       queuePlayer.pause()

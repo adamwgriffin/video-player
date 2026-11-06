@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Play/pause button, elapsed and total time, and the seek bar.
 struct PlaybackControls: View {
-  let player: LoopingPlayer
+  let player: Player
 
   var body: some View {
     HStack(spacing: 12) {
@@ -68,7 +68,7 @@ struct AirPlayButton: NSViewRepresentable {
 /// A thin bar with a small vertical marker at the current position.
 /// Clicking or dragging anywhere on it jumps to that point in the video.
 struct SeekBar: View {
-  let player: LoopingPlayer
+  let player: Player
 
   /// Where the person is dragging, shown instead of the playback position
   /// until they let go.

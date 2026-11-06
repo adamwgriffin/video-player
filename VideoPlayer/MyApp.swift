@@ -258,6 +258,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
           }
           .keyboardShortcut(.rightArrow, modifiers: [])
           .disabled(VideoModel.shared.player == nil)
+
+          Divider()
+
+          // Shows a checkmark when on. Cmd-L matches QuickTime Player.
+          Toggle(
+            "Loop",
+            isOn: Binding(
+              get: { VideoModel.shared.isLooping },
+              set: { VideoModel.shared.isLooping = $0 }
+            )
+          )
+          .keyboardShortcut("l")
         }
       }
   }
