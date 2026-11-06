@@ -149,17 +149,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       // another app is in front, and it only floats over this app's windows.
       panel.hidesOnDeactivate = true
       panel.isReleasedWhenClosed = false
-      panel.contentViewController = NSHostingController(
+      let hostingController = NSHostingController(
         rootView: MovieInspector(model: VideoModel.shared)
       )
+      panel.contentViewController = hostingController
       panel.delegate = self
+      // Size the panel to its contents now, so its width is known before
+      // it's positioned. Until then it can still be zero.
+      panel.setContentSize(hostingController.view.fittingSize)
 
       // Beside the video window, level with its top right corner.
       if let window {
         let gap: CGFloat = 8
         var x = window.frame.maxX + gap
-        // If there isn't room beside the window, slide back over it rather
-        // than hang off the edge of the screen.
+        // If there isn't room beside the window, as in full screen or when the
+        // window is wide, keep the panel on screen by overlapping the video.
         if let screen = window.screen {
           x = min(x, screen.visibleFrame.maxX - panel.frame.width)
         }
