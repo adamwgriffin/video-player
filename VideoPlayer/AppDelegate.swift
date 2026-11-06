@@ -95,8 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   /// Hides the pointer after the mouse has been still for a couple of seconds.
   /// The system shows it again as soon as the mouse moves.
   private func startHidingCursorWhenIdle() {
-    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved)
-    { [weak self] event in
+    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) {
+      [weak self] event in
       MainActor.assumeIsolated { self?.scheduleCursorHide() }
       return event
     }

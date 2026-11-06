@@ -21,7 +21,7 @@ struct MovieInspector: View {
               Text(description)
                 .font(.caption)
                 .multilineTextAlignment(.center)
-              // Lets the text wrap onto as many lines as it needs.
+                // Lets the text wrap onto as many lines as it needs.
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
             }
@@ -118,9 +118,10 @@ struct MovieInspector: View {
   }
 
   private func dataRate(of info: VideoInfo) -> String {
-    info.dataRate > 0 ? String(
-      format: "%.1f Mbps",
-      info.dataRate / 1_000_000
-    ) : "Unknown"
+    info.dataRate > 0
+      ? String(
+        format: "%.1f Mbps",
+        info.dataRate / 1_000_000
+      ) : "Unknown"
   }
 }

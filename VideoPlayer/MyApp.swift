@@ -40,8 +40,7 @@ import SwiftUI
         // A menu shortcut works whichever view has focus, so the space bar
         // always toggles playback, as it does in the built-in controls.
         CommandMenu("Playback") {
-          Button(VideoModel.shared.player?.isPlaying == true ? "Pause" : "Play")
-          {
+          Button(VideoModel.shared.player?.isPlaying == true ? "Pause" : "Play") {
             VideoModel.shared.player?.togglePlayback()
           }
           .keyboardShortcut(.space, modifiers: [])

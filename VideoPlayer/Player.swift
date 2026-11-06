@@ -1,5 +1,5 @@
-import AppKit
 import AVFoundation
+import AppKit
 import Observation
 
 /// Owns the player, starts the video over when it ends if looping is on,
