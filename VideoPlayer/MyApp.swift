@@ -243,14 +243,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
           .keyboardShortcut(.space, modifiers: [])
           .disabled(VideoModel.shared.player == nil)
 
-          Button("Back 5 Seconds") {
-            VideoModel.shared.player?.skip(bySeconds: -5)
+          // The arrow keys skip 5 seconds while playing and step one frame
+          // while paused, and the titles change to match.
+          let isPlaying = VideoModel.shared.player?.isPlaying == true
+
+          Button(isPlaying ? "Skip Back" : "Step Back") {
+            VideoModel.shared.player?.arrowKey(forward: false)
           }
           .keyboardShortcut(.leftArrow, modifiers: [])
           .disabled(VideoModel.shared.player == nil)
 
-          Button("Forward 5 Seconds") {
-            VideoModel.shared.player?.skip(bySeconds: 5)
+          Button(isPlaying ? "Skip Forward" : "Step Forward") {
+            VideoModel.shared.player?.arrowKey(forward: true)
           }
           .keyboardShortcut(.rightArrow, modifiers: [])
           .disabled(VideoModel.shared.player == nil)

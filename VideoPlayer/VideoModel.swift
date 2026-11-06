@@ -158,6 +158,16 @@ final class LoopingPlayer {
     seek(toFraction: (currentTime + seconds) / duration)
   }
 
+  /// What the arrow keys do, as QuickTime Player does it: while playing, skip
+  /// 5 seconds; while paused, move one frame at a time.
+  func arrowKey(forward: Bool) {
+    if queuePlayer.rate != 0 {
+      skip(bySeconds: forward ? 5 : -5)
+    } else {
+      queuePlayer.currentItem?.step(byCount: forward ? 1 : -1)
+    }
+  }
+
   /// Jumps to a position in the video, where 0 is the start and 1 is the end.
   func seek(toFraction fraction: Double) {
     guard duration > 0 else { return }
