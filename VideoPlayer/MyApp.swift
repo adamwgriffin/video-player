@@ -175,15 +175,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   }
 
   func windowWillClose(_ notification: Notification) {
-    if notification.object as? NSPanel === inspectorPanel {
+    // Compare against each window directly. Comparing optionals would treat a
+    // never-opened inspector (nil) as a match for any window that isn't a panel.
+    guard let closingWindow = notification.object as? NSWindow else { return }
+
+    if closingWindow === inspectorPanel {
       VideoModel.shared.isInspectorShown = false
       return
     }
+    guard closingWindow === window else { return }
 
     // The video window is closing, so there's nothing left to inspect.
     inspectorPanel?.close()
     VideoModel.shared.close()
     window = nil
+
+    // The app is just this one window, so closing it quits.
+    NSApp.terminate(nil)
   }
 }
 
