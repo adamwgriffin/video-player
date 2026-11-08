@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var window: NSWindow?
   private var inspectorPanel: NSPanel?
   private var mouseMovedMonitor: Any?
+  private var modifierKeysMonitor: Any?
   private var cursorHideTask: Task<Void, Never>?
 
   override init() {
@@ -24,6 +25,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // Track Command so the Playback menu can switch the arrow keys between
+    // stepping and skipping as it's pressed and released.
+    modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+      VideoModel.shared.isCommandKeyDown = event.modifierFlags.contains(.command)
+      return event
+    }
+
     // Like QuickTime Player, ask for a video at startup. A video opened from
     // Finder is already playing by now, so only ask if there isn't one.
     Task { @MainActor in
@@ -31,6 +39,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         VideoModel.shared.showOpenPanel()
       }
     }
+  }
+
+  /// Command could have been pressed or released while another app was in
+  /// front, when this app doesn't see key changes, so check it again.
+  func applicationDidBecomeActive(_ notification: Notification) {
+    VideoModel.shared.isCommandKeyDown = NSEvent.modifierFlags.contains(.command)
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {

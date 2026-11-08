@@ -20,6 +20,15 @@ struct ContentView: View {
           PlaybackControls(player: player)
         }
       }
+      .overlay(alignment: .top) {
+        if let progress = model.exportProgress {
+          ProgressView("Exporting…", value: progress)
+            .frame(width: 240)
+            .padding(12)
+            .background(.regularMaterial, in: .rect(cornerRadius: 8))
+            .padding(.top, 16)
+        }
+      }
       .frame(minWidth: 480, minHeight: 270)
     }
   }

@@ -6,14 +6,54 @@ struct PlaybackControls: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      Button {
-        player.togglePlayback()
-      } label: {
-        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-          .frame(width: 16)
+      HStack(spacing: 6) {
+        Button {
+          player.setStartTime()
+        } label: {
+          Image(systemName: "righttriangle.fill")
+            .font(.system(size: 8))
+        }
+        .buttonStyle(.plain)
+        .help("Set Start Time")
+        .accessibilityLabel("Set Start Time")
+
+        Button {
+          player.goToStartTime()
+        } label: {
+          Image(systemName: "backward.end.fill")
+        }
+        .buttonStyle(.plain)
+        .help("Go to Start Time")
+        .accessibilityLabel("Go to Start Time")
+
+        Button {
+          player.togglePlayback()
+        } label: {
+          Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+
+        Button {
+          player.goToEndTime()
+        } label: {
+          Image(systemName: "forward.end.fill")
+        }
+        .buttonStyle(.plain)
+        .help("Go to End Time")
+        .accessibilityLabel("Go to End Time")
+
+        Button {
+          player.setEndTime()
+        } label: {
+          Image(systemName: "righttriangle.fill")
+            .font(.system(size: 8))
+            .scaleEffect(x: -1)
+        }
+        .buttonStyle(.plain)
+        .help("Set End Time")
+        .accessibilityLabel("Set End Time")
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
 
       Text(formatted(player.currentTime))
         .monospacedDigit()

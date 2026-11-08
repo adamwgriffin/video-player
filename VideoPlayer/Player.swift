@@ -18,6 +18,11 @@ final class Player {
   private(set) var duration: Double = 0
   private(set) var isPlaying = false
 
+  /// Where playback begins again when it loops or restarts, in seconds.
+  private(set) var startTime: Double = 0
+  /// Where playback stops or loops, in seconds. Nil means the end of the video.
+  private(set) var endTime: Double?
+
   /// Details for the movie inspector. Nil until they've loaded.
   private(set) var info: VideoInfo?
 
@@ -78,7 +83,7 @@ final class Player {
 
   private func itemDidReachEnd() {
     if isLooping {
-      queuePlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+      seekToStartTime()
       queuePlayer.play()
     } else {
       isPlaying = false
@@ -87,15 +92,104 @@ final class Player {
 
   func togglePlayback() {
     if queuePlayer.rate == 0 {
-      // With looping off, playing again after the end starts from the top.
-      if let item = queuePlayer.currentItem, item.currentTime() >= item.duration {
-        queuePlayer.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+      // With looping off, playing again after the end starts from the start
+      // time. The end is the end time if one is set.
+      if let item = queuePlayer.currentItem {
+        let end = item.forwardPlaybackEndTime.isValid ? item.forwardPlaybackEndTime : item.duration
+        if item.currentTime() >= end {
+          seekToStartTime()
+        }
       }
       queuePlayer.play()
     } else {
       queuePlayer.pause()
     }
     isPlaying = queuePlayer.rate != 0
+  }
+
+  /// Makes the current position the start time. Beeps and does nothing if it
+  /// isn't before the end time.
+  func setStartTime() {
+    let time = queuePlayer.currentTime().seconds
+    guard time.isFinite else { return }
+    if let endTime, time >= endTime {
+      NSSound.beep()
+      return
+    }
+    startTime = time
+  }
+
+  /// Makes the current position the end time. Beeps and does nothing if it
+  /// isn't after the start time.
+  func setEndTime() {
+    let time = queuePlayer.currentTime().seconds
+    guard time.isFinite else { return }
+    guard time > startTime else {
+      NSSound.beep()
+      return
+    }
+    endTime = time
+    // Playback treats this as the end of the video, so looping and stopping
+    // at the end happen here.
+    queuePlayer.currentItem?.forwardPlaybackEndTime = CMTime(seconds: time, preferredTimescale: 600)
+  }
+
+  /// Whether a start or end time has been set, so there's a trimmed range to
+  /// export.
+  var isTrimmed: Bool {
+    startTime > 0 || endTime != nil
+  }
+
+  /// Writes the part of the video between the start and end times to a new
+  /// file. `progress` is called as the export runs, with values from 0 to 1.
+  ///
+  /// With `reencode` on, the video is re-encoded at the highest quality, which
+  /// makes the cut exact to the frame. With it off, the video is copied as is:
+  /// faster and lossless, but it can only cut at keyframes, so the start could
+  /// move earlier, and it fails if the codecs aren't allowed in the file type.
+  func exportTrimmed(
+    to url: URL,
+    as fileType: AVFileType,
+    reencode: Bool,
+    progress: @escaping (Double) -> Void
+  ) async throws {
+    let preset = reencode ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
+    guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
+      throw CocoaError(.fileWriteUnknown)
+    }
+    session.timeRange = CMTimeRange(
+      start: CMTime(seconds: startTime, preferredTimescale: 600),
+      end: CMTime(seconds: endTime ?? duration, preferredTimescale: 600)
+    )
+
+    let progressUpdates = Task {
+      for await state in session.states(updateInterval: 0.1) {
+        if case .exporting(let exportProgress) = state {
+          progress(exportProgress.fractionCompleted)
+        }
+      }
+    }
+    defer { progressUpdates.cancel() }
+
+    // The save panel has already confirmed replacing an existing file, and
+    // the export fails if one is in the way.
+    try? FileManager.default.removeItem(at: url)
+    try await session.export(to: url, as: fileType)
+  }
+
+  /// Puts the start and end times back to the beginning and end of the video.
+  func resetStartAndEndTimes() {
+    startTime = 0
+    endTime = nil
+    queuePlayer.currentItem?.forwardPlaybackEndTime = .invalid
+  }
+
+  private func seekToStartTime() {
+    queuePlayer.seek(
+      to: CMTime(seconds: startTime, preferredTimescale: 600),
+      toleranceBefore: .zero,
+      toleranceAfter: .zero
+    )
   }
 
   /// Copies the frame on screen to the clipboard as an image, at the video's
@@ -128,13 +222,28 @@ final class Player {
   }
 
   /// What the arrow keys do, as QuickTime Player does it: while playing, skip
-  /// 5 seconds; while paused, move one frame at a time.
+  /// 5 seconds; while paused, move one frame at a time. Holding Command while
+  /// paused skips instead.
   func arrowKey(forward: Bool) {
-    if queuePlayer.rate != 0 {
+    if queuePlayer.rate != 0 || NSEvent.modifierFlags.contains(.command) {
       skip(bySeconds: forward ? 5 : -5)
     } else {
       queuePlayer.currentItem?.step(byCount: forward ? 1 : -1)
     }
+  }
+
+  /// Jumps to the start time set with setStartTime(), or the beginning of the
+  /// video if none has been set.
+  func goToStartTime() {
+    guard duration > 0 else { return }
+    seek(toFraction: startTime / duration)
+  }
+
+  /// Jumps to the end time set with setEndTime(), or the end of the video if
+  /// none has been set.
+  func goToEndTime() {
+    guard duration > 0 else { return }
+    seek(toFraction: (endTime ?? duration) / duration)
   }
 
   /// Jumps to a position in the video, where 0 is the start and 1 is the end.
