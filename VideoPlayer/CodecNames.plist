@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>avc1</key>
+	<string>H.264</string>
+	<key>avc3</key>
+	<string>H.264</string>
+	<key>hvc1</key>
+	<string>HEVC</string>
+	<key>hev1</key>
+	<string>HEVC</string>
+	<key>av01</key>
+	<string>AV1</string>
+	<key>vp09</key>
+	<string>VP9</string>
+	<key>mp4v</key>
+	<string>MPEG-4 Video</string>
+	<key>jpeg</key>
+	<string>Photo JPEG</string>
+	<key>apcn</key>
+	<string>Apple ProRes</string>
+	<key>apch</key>
+	<string>Apple ProRes</string>
+	<key>apcs</key>
+	<string>Apple ProRes</string>
+	<key>apco</key>
+	<string>Apple ProRes</string>
+	<key>ap4h</key>
+	<string>Apple ProRes</string>
+	<key>ap4x</key>
+	<string>Apple ProRes</string>
+	<key>mp4a</key>
+	<string>MPEG-4 AAC</string>
+	<key>aac </key>
+	<string>MPEG-4 AAC</string>
+	<key>lpcm</key>
+	<string>Linear PCM</string>
+	<key>alac</key>
+	<string>Apple Lossless</string>
+	<key>ac-3</key>
+	<string>AC-3</string>
+	<key>ec-3</key>
+	<string>E-AC-3</string>
+</dict>
+</plist>

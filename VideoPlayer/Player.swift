@@ -57,7 +57,7 @@ final class Player {
     }
 
     Task {
-      info = await VideoInfo.load(from: url, asset: item.asset)
+      info = await VideoInfoLoader(url: url, asset: item.asset).load()
     }
 
     // The observer is delivered on the main queue, so it's safe to update
