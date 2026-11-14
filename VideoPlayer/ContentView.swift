@@ -33,7 +33,3 @@ struct ContentView: View {
     }
   }
 }
-
-#Preview {
-  ContentView(model: VideoModel())
-}
