@@ -11,9 +11,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var modifierKeysMonitor: Any?
   private var cursorHideTask: Task<Void, Never>?
 
+  private var videoModel: VideoModel { .shared }
+  private var player: Player? { videoModel.player }
+
   override init() {
     super.init()
-    VideoModel.shared.didOpen = { [weak self] in self?.showWindow() }
+    videoModel.didOpen = { [weak self] in self?.showWindow() }
 
     // The system adds these to every Edit menu on its own. They're no use
     // here, so ask it to leave them out.
@@ -27,16 +30,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Track Option so the Playback menu can switch the arrow keys between
     // stepping and skipping as it's pressed and released.
-    modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-      VideoModel.shared.skipWhilePaused = event.modifierFlags.contains(.option)
+    modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+      self?.videoModel.skipWhilePaused = event.modifierFlags.contains(.option)
       return event
     }
 
     // Like QuickTime Player, ask for a video at startup. A video opened from
     // Finder is already playing by now, so only ask if there isn't one.
     Task { @MainActor in
-      if VideoModel.shared.player == nil {
-        VideoModel.shared.showOpenPanel()
+      if player == nil {
+        videoModel.showOpenPanel()
       }
     }
   }
@@ -44,13 +47,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   /// Option could have been pressed or released while another app was in
   /// front, when this app doesn't see key changes, so check it again.
   func applicationDidBecomeActive(_ notification: Notification) {
-    VideoModel.shared.skipWhilePaused = NSEvent.modifierFlags.contains(.option)
+    videoModel.skipWhilePaused = NSEvent.modifierFlags.contains(.option)
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
     // Only one video plays at a time, so use the last one if several arrive.
     if let url = urls.last {
-      VideoModel.shared.open(url)
+      videoModel.open(url)
     }
   }
 
@@ -58,7 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     if window == nil {
       let window = NSWindow(
         contentViewController: NSHostingController(
-          rootView: ContentView(model: VideoModel.shared)
+          rootView: ContentView(model: videoModel)
         )
       )
       window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
@@ -83,7 +86,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       self.window = window
     }
     // Set every time, because opening another video reuses the window.
-    window?.title = VideoModel.shared.title
+    window?.title = videoModel.title
     window?.makeKeyAndOrderFront(nil)
     NSApp.activate()
   }
@@ -97,12 +100,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   }
 
   func windowWillEnterFullScreen(_ notification: Notification) {
-    VideoModel.shared.isFullScreen = true
+    videoModel.isFullScreen = true
     startHidingCursorWhenIdle()
   }
 
   func windowWillExitFullScreen(_ notification: Notification) {
-    VideoModel.shared.isFullScreen = false
+    videoModel.isFullScreen = false
     stopHidingCursorWhenIdle()
   }
 
@@ -164,7 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
       panel.hidesOnDeactivate = true
       panel.isReleasedWhenClosed = false
       let hostingController = NSHostingController(
-        rootView: MovieInspector(model: VideoModel.shared)
+        rootView: MovieInspector(model: videoModel)
       )
       panel.contentViewController = hostingController
       panel.delegate = self
@@ -189,7 +192,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     inspectorPanel?.orderFront(nil)
-    VideoModel.shared.isInspectorShown = true
+    videoModel.isInspectorShown = true
   }
 
   func windowWillClose(_ notification: Notification) {
@@ -198,14 +201,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     guard let closingWindow = notification.object as? NSWindow else { return }
 
     if closingWindow === inspectorPanel {
-      VideoModel.shared.isInspectorShown = false
+      videoModel.isInspectorShown = false
       return
     }
     guard closingWindow === window else { return }
 
     // The video window is closing, so there's nothing left to inspect.
     inspectorPanel?.close()
-    VideoModel.shared.close()
+    videoModel.close()
     window = nil
 
     // The app is just this one window, so closing it quits.
