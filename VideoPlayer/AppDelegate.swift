@@ -5,7 +5,7 @@ import SwiftUI
 /// It also owns the player window, which only exists while a video is open, so
 /// nothing is on screen when the app starts.
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
-  private var window: NSWindow?
+  private var window: VideoWindow?
   private var inspectorPanel: InspectorPanel?
   private var mouseMovedMonitor: Any?
   private var modifierKeysMonitor: Any?
@@ -59,44 +59,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
   private func showWindow() {
     if window == nil {
-      let window = NSWindow(
-        contentViewController: NSHostingController(
-          rootView: ContentView(model: videoModel)
-        )
-      )
-      window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
-      window.isReleasedWhenClosed = false
-      window.collectionBehavior.insert(.fullScreenPrimary)
-      // Windows only report mouse movement when asked to, which the full
-      // screen pointer hiding relies on.
-      window.acceptsMouseMovedEvents = true
+      let window = VideoWindow(videoModel: videoModel)
+      // So this hears about full screen changes and the window closing.
       window.delegate = self
-      // visibleFrame excludes the menu bar and Dock.
-      if let screen = NSScreen.main {
-        let visibleFrame = screen.visibleFrame
-        window.setContentSize(initialWindowSize(in: visibleFrame))
-        // Top left of the screen, just below the menu bar.
-        window
-          .setFrameTopLeftPoint(
-            NSPoint(x: visibleFrame.minX, y: visibleFrame.maxY)
-          )
-      } else {
-        window.setContentSize(NSSize(width: 800, height: 450))
-      }
       self.window = window
     }
     // Set every time, because opening another video reuses the window.
     window?.title = videoModel.title
     window?.makeKeyAndOrderFront(nil)
     NSApp.activate()
-  }
-
-  /// Three quarters of the screen's width, at a 16:9 shape, but never taller
-  /// than the screen.
-  private func initialWindowSize(in visibleFrame: NSRect) -> NSSize {
-    let width = visibleFrame.width * 3 / 4
-    let height = min(width * 9 / 16, visibleFrame.height)
-    return NSSize(width: width, height: height)
   }
 
   func windowWillEnterFullScreen(_ notification: Notification) {
