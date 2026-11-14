@@ -2,11 +2,11 @@ import SwiftUI
 
 /// The contents of the movie inspector panel: details about the open video.
 struct MovieInspector: View {
-  let model: VideoModel
+  let videoModel: VideoModel
 
   var body: some View {
     Group {
-      if let info = model.player?.info {
+      if let info = videoModel.player?.info {
         VStack(spacing: 10) {
           // The title, with the description beneath it if the file has one.
           VStack(spacing: 4) {
