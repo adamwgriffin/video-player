@@ -92,8 +92,12 @@ final class Player {
 
   func togglePlayback() {
     if queuePlayer.rate == 0 {
+      // Frame steps move the position without updating this, so check it
+      // against the end time before playing.
+      updatePlaybackEnd(forPosition: queuePlayer.currentTime().seconds)
+
       // With looping off, playing again after the end starts from the start
-      // time. The end is the end time if one is set.
+      // time. The end is the end time if it applies.
       if let item = queuePlayer.currentItem {
         let end = item.forwardPlaybackEndTime.isValid ? item.forwardPlaybackEndTime : item.duration
         if item.currentTime() >= end {
@@ -129,9 +133,7 @@ final class Player {
       return
     }
     endTime = time
-    // Playback treats this as the end of the video, so looping and stopping
-    // at the end happen here.
-    queuePlayer.currentItem?.forwardPlaybackEndTime = CMTime(seconds: time, preferredTimescale: 600)
+    updatePlaybackEnd(forPosition: time)
   }
 
   /// Whether a start or end time has been set, so there's a trimmed range to
@@ -181,15 +183,31 @@ final class Player {
   func resetStartAndEndTimes() {
     startTime = 0
     endTime = nil
-    queuePlayer.currentItem?.forwardPlaybackEndTime = .invalid
+    updatePlaybackEnd(forPosition: currentTime)
   }
 
   private func seekToStartTime() {
+    updatePlaybackEnd(forPosition: startTime)
     queuePlayer.seek(
       to: CMTime(seconds: startTime, preferredTimescale: 600),
       toleranceBefore: .zero,
       toleranceAfter: .zero
     )
+  }
+
+  /// The end time only applies once playback is inside the range. From a
+  /// position past it, such as after clicking later in the timeline, the
+  /// video plays on to its real end instead. Call this whenever the position
+  /// jumps, before seeking.
+  private func updatePlaybackEnd(forPosition position: Double) {
+    guard let item = queuePlayer.currentItem else { return }
+    if let endTime, position <= endTime {
+      // Playback treats this as the end of the video, so looping and stopping
+      // at the end happen here.
+      item.forwardPlaybackEndTime = CMTime(seconds: endTime, preferredTimescale: 600)
+    } else {
+      item.forwardPlaybackEndTime = .invalid
+    }
   }
 
   /// Copies the frame on screen to the clipboard as an image, at the video's
@@ -251,6 +269,9 @@ final class Player {
     guard duration > 0 else { return }
     let clamped = min(max(fraction, 0), 1)
     currentTime = clamped * duration
+    // Before seeking: while playing, landing past an end time that's still
+    // set counts as reaching the end, and would loop back to the start.
+    updatePlaybackEnd(forPosition: currentTime)
     queuePlayer.seek(
       to: CMTime(seconds: currentTime, preferredTimescale: 600),
       toleranceBefore: .zero,
