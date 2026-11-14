@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The contents of the movie inspector panel: details about the open video.
 struct MovieInspector: View {
-  let videoModel: VideoModel
+  @Environment(VideoModel.self) private var videoModel
 
   var body: some View {
     Group {

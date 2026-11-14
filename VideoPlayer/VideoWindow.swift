@@ -15,7 +15,7 @@ final class VideoWindow: NSWindow {
     // Windows only report mouse movement when asked to, which the full screen
     // pointer hiding relies on.
     acceptsMouseMovedEvents = true
-    contentViewController = NSHostingController(rootView: ContentView(model: videoModel))
+    contentViewController = NSHostingController(rootView: ContentView().environment(videoModel))
 
     // visibleFrame excludes the menu bar and Dock.
     if let visibleFrame = NSScreen.main?.visibleFrame {

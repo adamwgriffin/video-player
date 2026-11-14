@@ -3,7 +3,7 @@ import SwiftUI
 @main struct MyApp: App {
   @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
-  private var videoModel: VideoModel { .shared }
+  private var videoModel: VideoModel { appDelegate.videoModel }
   private var player: Player? { videoModel.player }
 
   /// Whether the arrow keys skip 5 seconds rather than step one frame: while

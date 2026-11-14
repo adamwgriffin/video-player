@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct ContentView: View {
-  let model: VideoModel
+  @Environment(VideoModel.self) private var videoModel
 
   var body: some View {
-    if let player = model.player {
+    if let player = videoModel.player {
       VStack(spacing: 0) {
         VideoSurface(player: player.queuePlayer)
           // A clear layer on top receives the clicks, since the AVPlayerView
@@ -16,12 +16,12 @@ struct ContentView: View {
                 player.togglePlayback()
               }
           }
-        if !model.isFullScreen {
+        if !videoModel.isFullScreen {
           PlaybackControls(player: player)
         }
       }
       .overlay(alignment: .top) {
-        if let progress = model.exportProgress {
+        if let progress = videoModel.exportProgress {
           ProgressView("Exporting…", value: progress)
             .frame(width: 240)
             .padding(12)

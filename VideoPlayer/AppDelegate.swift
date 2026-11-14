@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Receives videos opened from Finder and routes them to the one shared model,
+/// Owns the app's one VideoModel, and routes videos opened from Finder to it,
 /// so a new video replaces the current one instead of opening another window.
 /// It also owns the player window, which only exists while a video is open, so
 /// nothing is on screen when the app starts.
@@ -11,7 +11,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var modifierKeysMonitor: Any?
   private var cursorHideTask: Task<Void, Never>?
 
-  private var videoModel: VideoModel { .shared }
+  /// The app's only model, created here because the app delegate needs it
+  /// before SwiftUI builds the menus: Finder can ask to open a video as the
+  /// app launches. The views get it through the SwiftUI environment.
+  let videoModel = VideoModel()
   private var player: Player? { videoModel.player }
 
   override init() {

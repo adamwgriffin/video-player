@@ -6,13 +6,6 @@ import UniformTypeIdentifiers
 /// Holds the one video the app is showing. Opening another video replaces it.
 @Observable
 final class VideoModel {
-  /// Shared so the app delegate, which receives Finder open requests, can
-  /// reach the same model the window displays.
-  static let shared = VideoModel()
-
-  /// Private, so shared is the only VideoModel the app can have.
-  private init() {}
-
   private(set) var player: Player?
 
   /// The video's file name without its extension, for the window title.

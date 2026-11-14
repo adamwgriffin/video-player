@@ -17,7 +17,7 @@ final class InspectorPanel: NSPanel {
     hidesOnDeactivate = true
     isReleasedWhenClosed = false
 
-    let hostingController = NSHostingController(rootView: MovieInspector(videoModel: videoModel))
+    let hostingController = NSHostingController(rootView: MovieInspector().environment(videoModel))
     contentViewController = hostingController
     // Size the panel to its contents now, so its width is known before it's
     // positioned. Until then it can still be zero.
