@@ -222,10 +222,10 @@ final class Player {
   }
 
   /// What the arrow keys do, as QuickTime Player does it: while playing, skip
-  /// 5 seconds; while paused, move one frame at a time. Holding Command while
+  /// 5 seconds; while paused, move one frame at a time. Holding Option while
   /// paused skips instead.
   func arrowKey(forward: Bool) {
-    if queuePlayer.rate != 0 || NSEvent.modifierFlags.contains(.command) {
+    if queuePlayer.rate != 0 || NSEvent.modifierFlags.contains(.option) {
       skip(bySeconds: forward ? 5 : -5)
     } else {
       queuePlayer.currentItem?.step(byCount: forward ? 1 : -1)

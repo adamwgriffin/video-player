@@ -58,13 +58,13 @@ import SwiftUI
           .disabled(VideoModel.shared.player == nil)
 
           // The arrow keys skip 5 seconds while playing and step one frame
-          // while paused. Holding Command makes them skip while paused too. The
+          // while paused. Holding Option makes them skip while paused too. The
           // titles change to match, and so does the shortcut, since a menu
           // shortcut only fires when its modifier keys are exactly the ones
           // held down.
-          let isCommandKeyDown = VideoModel.shared.isCommandKeyDown
-          let arrowKeysSkip = VideoModel.shared.player?.isPlaying == true || isCommandKeyDown
-          let arrowModifiers: EventModifiers = isCommandKeyDown ? .command : []
+          let isOptionKeyDown = VideoModel.shared.isOptionKeyDown
+          let arrowKeysSkip = VideoModel.shared.player?.isPlaying == true || isOptionKeyDown
+          let arrowModifiers: EventModifiers = isOptionKeyDown ? .option : []
 
           Button(arrowKeysSkip ? "Skip Back" : "Step Back") {
             VideoModel.shared.player?.arrowKey(forward: false)
