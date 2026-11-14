@@ -18,9 +18,9 @@ final class VideoModel {
   /// Whether the window is full screen, when the controls are hidden.
   var isFullScreen = false
 
-  /// Whether Option is held down, which makes the arrow keys skip instead of
+  /// Whether a keyboard modifier is held down, which makes the arrow keys skip instead of
   /// step while paused. Kept up to date by the app delegate.
-  var isOptionKeyDown = false
+  var skipWhilePaused = false
 
   /// Whether the movie inspector panel is showing, for the menu item's title.
   var isInspectorShown = false

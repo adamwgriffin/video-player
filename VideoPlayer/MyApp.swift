@@ -3,6 +3,19 @@ import SwiftUI
 @main struct MyApp: App {
   @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
+  /// Whether the arrow keys skip 5 seconds rather than step one frame: while
+  /// playing, or while paused with Option held down.
+  private var arrowKeysSkip: Bool {
+    VideoModel.shared.player?.isPlaying == true || VideoModel.shared.skipWhilePaused
+  }
+
+  /// The modifier keys for the arrow keys' shortcuts. A menu shortcut only
+  /// fires when its modifier keys are exactly the ones held down, so this
+  /// includes Option while it's held.
+  private var arrowKeyModifiers: EventModifiers {
+    VideoModel.shared.skipWhilePaused ? .option : []
+  }
+
   var body: some Scene {
     // SwiftUI needs at least one scene, and unlike a Window or WindowGroup this
     // one doesn't open at launch. The player window is managed by AppDelegate.
@@ -57,25 +70,18 @@ import SwiftUI
           .keyboardShortcut(.space, modifiers: [])
           .disabled(VideoModel.shared.player == nil)
 
-          // The arrow keys skip 5 seconds while playing and step one frame
-          // while paused. Holding Option makes them skip while paused too. The
-          // titles change to match, and so does the shortcut, since a menu
-          // shortcut only fires when its modifier keys are exactly the ones
-          // held down.
-          let isOptionKeyDown = VideoModel.shared.isOptionKeyDown
-          let arrowKeysSkip = VideoModel.shared.player?.isPlaying == true || isOptionKeyDown
-          let arrowModifiers: EventModifiers = isOptionKeyDown ? .option : []
-
+          // The titles and shortcuts change with whether the arrow keys skip
+          // or step.
           Button(arrowKeysSkip ? "Skip Back" : "Step Back") {
             VideoModel.shared.player?.arrowKey(forward: false)
           }
-          .keyboardShortcut(.leftArrow, modifiers: arrowModifiers)
+          .keyboardShortcut(.leftArrow, modifiers: arrowKeyModifiers)
           .disabled(VideoModel.shared.player == nil)
 
           Button(arrowKeysSkip ? "Skip Forward" : "Step Forward") {
             VideoModel.shared.player?.arrowKey(forward: true)
           }
-          .keyboardShortcut(.rightArrow, modifiers: arrowModifiers)
+          .keyboardShortcut(.rightArrow, modifiers: arrowKeyModifiers)
           .disabled(VideoModel.shared.player == nil)
 
           Divider()

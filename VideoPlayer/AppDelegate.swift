@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // Track Option so the Playback menu can switch the arrow keys between
     // stepping and skipping as it's pressed and released.
     modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-      VideoModel.shared.isOptionKeyDown = event.modifierFlags.contains(.option)
+      VideoModel.shared.skipWhilePaused = event.modifierFlags.contains(.option)
       return event
     }
 
@@ -44,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   /// Option could have been pressed or released while another app was in
   /// front, when this app doesn't see key changes, so check it again.
   func applicationDidBecomeActive(_ notification: Notification) {
-    VideoModel.shared.isOptionKeyDown = NSEvent.modifierFlags.contains(.option)
+    VideoModel.shared.skipWhilePaused = NSEvent.modifierFlags.contains(.option)
   }
 
   func application(_ application: NSApplication, open urls: [URL]) {
