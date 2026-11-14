@@ -6,7 +6,7 @@ import SwiftUI
 /// nothing is on screen when the app starts.
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var window: NSWindow?
-  private var inspectorPanel: NSPanel?
+  private var inspectorPanel: InspectorPanel?
   private var mouseMovedMonitor: Any?
   private var modifierKeysMonitor: Any?
   private var cursorHideTask: Task<Void, Never>?
@@ -152,42 +152,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     if inspectorPanel == nil {
-      // A floating HUD panel: translucent and dark, and it stays above the
-      // video window.
-      let panel = NSPanel(
-        contentRect: .zero,
-        styleMask: [.titled, .closable, .utilityWindow, .hudWindow],
-        backing: .buffered,
-        defer: false
-      )
-      panel.title = "Inspector"
-      panel.isFloatingPanel = true
-      // A floating panel sits above every app's windows, so hide it whenever
-      // another app is in front, and it only floats over this app's windows.
-      panel.hidesOnDeactivate = true
-      panel.isReleasedWhenClosed = false
-      let hostingController = NSHostingController(
-        rootView: MovieInspector(model: videoModel)
-      )
-      panel.contentViewController = hostingController
+      let panel = InspectorPanel(videoModel: videoModel)
+      // So windowWillClose(_:) hears when the panel closes.
       panel.delegate = self
-      // Size the panel to its contents now, so its width is known before
-      // it's positioned. Until then it can still be zero.
-      panel.setContentSize(hostingController.view.fittingSize)
-
-      // Beside the video window, level with its top right corner.
-      if let window {
-        let gap: CGFloat = 8
-        var x = window.frame.maxX + gap
-        // If there isn't room beside the window, as in full screen or when the
-        // window is wide, keep the panel on screen by overlapping the video.
-        if let screen = window.screen {
-          x = min(x, screen.visibleFrame.maxX - panel.frame.width)
-        }
-        panel.setFrameTopLeftPoint(NSPoint(x: x, y: window.frame.maxY))
-      } else {
-        panel.center()
-      }
+      panel.position(beside: window)
       inspectorPanel = panel
     }
 
