@@ -73,37 +73,14 @@ final class VideoModel {
   func exportTrimmedVideo() {
     guard let player, exportProgress == nil else { return }
 
-    let panel = NSSavePanel()
-    panel.allowedContentTypes = [.mpeg4Movie]
-    panel.nameFieldStringValue = exportFileName()
-    // Set every time, so the dialog always opens in Downloads instead of the
-    // last folder used.
-    panel.directoryURL = userDownloadsFolder()
-
-    // A checkbox under the save dialog's file browser.
-    let reencodeCheckbox = NSButton(
-      checkboxWithTitle:
-        "Re-encode for frame-accurate cuts",
-      target: nil,
-      action: nil
-    )
-    reencodeCheckbox.state = reencodesExports ? .on : .off
-    reencodeCheckbox.toolTip = """
-      Off copies the video without re-encoding: faster and lossless, but the start can only be cut at a keyframe. \
-      Videos whose codecs MP4 doesn't allow will fail unless you enable this.
-      """
-    let accessory = NSStackView(views: [reencodeCheckbox])
-    accessory.edgeInsets = NSEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
-    panel.accessoryView = accessory
-
-    guard panel.runModal() == .OK, let url = panel.url else { return }
-    reencodesExports = reencodeCheckbox.state == .on
-    let reencode = reencodesExports
+    let savePanel = ExportSavePanel(title: title, reencodes: reencodesExports)
+    guard let choice = savePanel.run() else { return }
+    reencodesExports = choice.reencode
 
     exportProgress = 0
     Task {
       do {
-        try await player.exportTrimmed(to: url, as: .mp4, reencode: reencode) { fraction in
+        try await player.exportTrimmed(to: choice.url, as: .mp4, reencode: choice.reencode) { fraction in
           self.exportProgress = fraction
         }
       } catch {
@@ -111,20 +88,6 @@ final class VideoModel {
       }
       exportProgress = nil
     }
-  }
-
-  /// The user's real Downloads folder. In the sandbox, URL.downloadsDirectory
-  /// is a folder inside the app's own container instead, so this starts from
-  /// the account's home folder.
-  private func userDownloadsFolder() -> URL? {
-    guard let home = getpwuid(getuid())?.pointee.pw_dir else { return nil }
-    return URL(fileURLWithPath: String(cString: home)).appending(path: "Downloads")
-  }
-
-  /// The suggested name for an export: the video's title and the current Unix
-  /// timestamp, such as "marbles-1794099727".
-  private func exportFileName() -> String {
-    "\(title)-\(Int(Date.now.timeIntervalSince1970))"
   }
 
   /// Stops playback and releases the video, such as when its window closes.
