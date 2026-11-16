@@ -10,8 +10,8 @@ struct PlaybackControls: View {
         Button {
           player.setStartTime()
         } label: {
-          Image(systemName: "righttriangle.fill")
-            .font(.system(size: 8))
+          Image(systemName: "timer")
+            .scaleEffect(x: -1)
         }
         .buttonStyle(.plain)
         .help("Set Start Time")
@@ -46,9 +46,7 @@ struct PlaybackControls: View {
         Button {
           player.setEndTime()
         } label: {
-          Image(systemName: "righttriangle.fill")
-            .font(.system(size: 8))
-            .scaleEffect(x: -1)
+          Image(systemName: "timer")
         }
         .buttonStyle(.plain)
         .help("Set End Time")
