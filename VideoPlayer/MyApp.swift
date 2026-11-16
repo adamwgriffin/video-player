@@ -76,13 +76,13 @@ import SwiftUI
           // The titles and shortcuts change with whether the arrow keys skip
           // or step.
           Button(arrowKeysSkip ? "Skip Back" : "Step Back") {
-            player?.arrowKey(forward: false)
+            player?.skipOrStep(forward: false)
           }
           .keyboardShortcut(.leftArrow, modifiers: arrowKeyModifiers)
           .disabled(player == nil)
 
           Button(arrowKeysSkip ? "Skip Forward" : "Step Forward") {
-            player?.arrowKey(forward: true)
+            player?.skipOrStep(forward: true)
           }
           .keyboardShortcut(.rightArrow, modifiers: arrowKeyModifiers)
           .disabled(player == nil)

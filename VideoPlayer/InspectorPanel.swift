@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The movie inspector's window: a floating HUD panel, translucent and dark,
-/// that stays above the video window and shows MovieInspector.
+/// A floating HUD panel, translucent and dark, that shows details about a
+/// video. It stays above the app's other windows.
 final class InspectorPanel: NSPanel {
   init(videoModel: VideoModel) {
     super.init(
@@ -17,7 +17,7 @@ final class InspectorPanel: NSPanel {
     hidesOnDeactivate = true
     isReleasedWhenClosed = false
 
-    let hostingController = NSHostingController(rootView: MovieInspector().environment(videoModel))
+    let hostingController = NSHostingController(rootView: CurrentVideoInspector().environment(videoModel))
     contentViewController = hostingController
     // Size the panel to its contents now, so its width is known before it's
     // positioned. Until then it can still be zero.
