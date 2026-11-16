@@ -1,7 +1,6 @@
 import AVFoundation
 
-/// Reads a video file's details for the movie inspector, and returns them as
-/// a VideoInfo.
+/// Reads a video file's details and returns them as a VideoInfo.
 struct VideoInfoLoader {
   let url: URL
   let asset: AVAsset

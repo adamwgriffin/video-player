@@ -1,6 +1,6 @@
 import Foundation
 
-/// Details about a video file, shown in the movie inspector.
+/// Details about a video file, such as its codecs, size and duration.
 struct VideoInfo {
   let name: String
   let videoCodec: String?

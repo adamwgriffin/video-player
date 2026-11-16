@@ -3,7 +3,7 @@ import AppKit
 import Observation
 
 /// Owns the player, starts the video over when it ends if looping is on,
-/// and publishes the playback state that the custom controls display.
+/// and publishes its playback state, such as the current time, for display.
 @Observable
 final class Player {
   let queuePlayer = AVQueuePlayer()
@@ -23,7 +23,8 @@ final class Player {
   /// Where playback stops or loops, in seconds. Nil means the end of the video.
   private(set) var endTime: Double?
 
-  /// Details for the movie inspector. Nil until they've loaded.
+  /// Details about the video file, such as its codecs and size. Nil until
+  /// they've loaded.
   private(set) var info: VideoInfo?
 
   @ObservationIgnored private var timeObserver: Any?
