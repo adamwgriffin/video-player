@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// A thin bar that fills up to the current position, with triangles
-/// above it marking the start and end times. Clicking or dragging
-/// anywhere on it jumps to that point in the video.
+/// A thin bar that fills up to the current position, with green and red
+/// lines at the start and end times. Clicking or dragging anywhere on it jumps
+/// to that point in the video.
 struct SeekBar: View {
   let player: Player
 
@@ -11,12 +11,7 @@ struct SeekBar: View {
   @State private var scrubFraction: Double?
 
   private let trackHeight: CGFloat = 4
-  /// The start and end triangles: the same symbol as the buttons that set
-  /// those times, at half the buttons' 10 points.
-  private let markerSymbolSize: CGFloat = 6
-  private let markerFrameSize: CGFloat = 7
-  /// Space between the bottom of the triangles and the top of the track.
-  private let markerGap: CGFloat = 2
+  private let rangeMarkerSize = CGSize(width: 2, height: 14)
 
   var body: some View {
     GeometryReader { geometry in
@@ -31,12 +26,8 @@ struct SeekBar: View {
           .frame(width: geometry.size.width * fraction, height: trackHeight)
 
         if player.duration > 0 {
-          // The start triangle's right edge sits on the start position, and
-          // the end triangle's left edge on the end position.
-          rangeMarker(mirrored: false)
-            .offset(x: geometry.size.width * startFraction - markerFrameSize, y: markerOffsetY)
-          rangeMarker(mirrored: true)
-            .offset(x: geometry.size.width * endFraction, y: markerOffsetY)
+          rangeMarker(.green, at: startFraction, in: geometry.size.width)
+          rangeMarker(.red, at: endFraction, in: geometry.size.width)
         }
       }
       .frame(maxHeight: .infinity)
@@ -54,9 +45,7 @@ struct SeekBar: View {
           }
       )
     }
-    // Tall enough for the triangles above the track. The track stays in the
-    // middle, level with the time labels beside it.
-    .frame(height: 28)
+    .frame(height: 20)
     .accessibilityElement()
     .accessibilityLabel("Playback position")
     .accessibilityValue(
@@ -85,23 +74,11 @@ struct SeekBar: View {
     return min(endTime / player.duration, 1)
   }
 
-  /// Moves a triangle up from the middle of the row to just above the track.
-  private var markerOffsetY: CGFloat {
-    -(trackHeight / 2 + markerGap + markerFrameSize / 2)
-  }
-
-  /// The triangle used by the Set Start Time button, or mirrored for Set End
-  /// Time. It's pushed to one side of its frame so the triangle's straight,
-  /// vertical edge is flush with that side of the frame.
-  private func rangeMarker(mirrored: Bool) -> some View {
-    Image(systemName: "righttriangle.fill")
-      .font(.system(size: markerSymbolSize))
-      .foregroundStyle(.primary)
-      .scaleEffect(x: mirrored ? -1 : 1)
-      .frame(
-        width: markerFrameSize,
-        height: markerFrameSize,
-        alignment: mirrored ? .leading : .trailing
-      )
+  /// A thin colored line across the track, kept fully inside it at both ends.
+  private func rangeMarker(_ color: Color, at fraction: Double, in width: CGFloat) -> some View {
+    Rectangle()
+      .fill(color)
+      .frame(width: rangeMarkerSize.width, height: rangeMarkerSize.height)
+      .offset(x: (width - rangeMarkerSize.width) * fraction)
   }
 }

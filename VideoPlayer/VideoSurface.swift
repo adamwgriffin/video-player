@@ -1,8 +1,8 @@
 import AVKit
 import SwiftUI
 
-/// The video picture alone. AVPlayerView's built-in controls are turned off
-/// because PlaybackControls replaces them.
+/// The video picture alone, with AVPlayerView's built-in controls turned off
+/// so other controls can be used instead.
 struct VideoSurface: NSViewRepresentable {
   let player: AVPlayer
 

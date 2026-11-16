@@ -1,12 +1,13 @@
 import SwiftUI
 
-/// The contents of the movie inspector panel: details about the open video.
+/// Details about a video, such as its name, formats, resolution and duration.
 struct MovieInspector: View {
-  @Environment(VideoModel.self) private var videoModel
+  /// The details to show, or nil while they're still loading.
+  let info: VideoInfo?
 
   var body: some View {
     Group {
-      if let info = videoModel.player?.info {
+      if let info {
         VStack(spacing: 10) {
           // The title, with the description beneath it if the file has one.
           VStack(spacing: 4) {

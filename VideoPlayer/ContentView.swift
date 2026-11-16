@@ -4,19 +4,44 @@ struct ContentView: View {
   @Environment(VideoModel.self) private var videoModel
 
   var body: some View {
+    @Bindable var videoModel = videoModel
+
     if let player = videoModel.player {
       VStack(spacing: 0) {
         VideoSurface(player: player.queuePlayer)
           // A clear layer on top receives the clicks, since the AVPlayerView
-          // underneath can swallow them.
+          // underneath can swallow them. Clicks don't play or pause while the
+          // crop tool is showing, so they can't interrupt adjusting the crop.
           .overlay {
             Color.clear
               .contentShape(Rectangle())
               .onTapGesture {
-                player.togglePlayback()
+                if !videoModel.isCropping {
+                  player.togglePlayback()
+                }
               }
           }
+          // The crop tool needs the picture's size to line up with it, which
+          // is known once the video's details have loaded.
+          .overlay {
+            if videoModel.isCropping, let videoSize = player.info?.pixelSize {
+              CropOverlay(
+                player: player,
+                videoSize: videoSize,
+                keepsShape: videoModel.cropAspectRatio != .custom
+              )
+            }
+          }
         if !videoModel.isFullScreen {
+          if videoModel.isCropping {
+            CropToolbar(
+              aspectRatio: $videoModel.cropAspectRatio,
+              width: $videoModel.cropWidthField,
+              height: $videoModel.cropHeightField,
+              // Typed sizes otherwise wait until focus leaves the field.
+              onSubmit: { videoModel.applyPendingCropSize() }
+            )
+          }
           PlaybackControls(player: player)
         }
       }
