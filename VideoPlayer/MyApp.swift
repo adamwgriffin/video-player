@@ -29,14 +29,14 @@ import SwiftUI
           Button("Open…") { videoModel.showOpenPanel() }
             .keyboardShortcut("o")
         }
-        // Greyed out until a start or end time is set, and while an export
-        // is already running.
+        // Greyed out until the video is trimmed or cropped, and while an
+        // export is already running.
         CommandGroup(replacing: .importExport) {
-          Button("Export Trimmed Video…") {
-            videoModel.exportTrimmedVideo()
+          Button("Export…") {
+            videoModel.export()
           }
           .disabled(
-            player?.isTrimmed != true
+            !(player?.isTrimmed == true || player?.isCropped == true)
               || videoModel.exportProgress != nil
           )
         }
@@ -51,6 +51,21 @@ import SwiftUI
             Task { await player?.copyCurrentFrame() }
           }
           .keyboardShortcut("c")
+          .disabled(player == nil)
+        }
+        // Shows or hides the crop tool. The video is only cropped while it's
+        // showing, and Export uses that crop.
+        CommandGroup(after: .pasteboard) {
+          Divider()
+          Toggle(
+            "Crop",
+            isOn: Binding(
+              get: { videoModel.isCropping },
+              set: { videoModel.isCropping = $0 }
+            )
+          )
+          // Cmd-K matches Crop in Preview.
+          .keyboardShortcut("k")
           .disabled(player == nil)
         }
         // As in QuickTime Player, Cmd-I shows details about the video.

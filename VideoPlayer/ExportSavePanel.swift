@@ -1,7 +1,7 @@
 import AppKit
 import UniformTypeIdentifiers
 
-/// The save dialog for exporting a trimmed video.
+/// The save dialog for exporting the video, trimmed or cropped.
 ///
 /// It wraps an NSSavePanel rather than subclassing it, because sandboxed apps
 /// can't subclass the system's open and save panels.
@@ -10,6 +10,9 @@ struct ExportSavePanel {
   let title: String
   /// Whether the re-encode checkbox starts ticked.
   let reencodes: Bool
+  /// Whether the export has to re-encode, as cropping does. The checkbox is
+  /// then ticked and can't be changed.
+  let reencodeRequired: Bool
 
   /// Shows the dialog and waits for the person to choose. Returns where to
   /// save and whether to re-encode, or nil if they cancel.
@@ -28,12 +31,18 @@ struct ExportSavePanel {
     panel.accessoryView = accessory
 
     guard panel.runModal() == .OK, let url = panel.url else { return nil }
-    return (url, reencodeCheckbox.state == .on)
+    return (url, reencodeRequired || reencodeCheckbox.state == .on)
   }
 
   /// A checkbox under the save dialog's file browser.
   private func makeReencodeCheckbox() -> NSButton {
     let checkbox = NSButton(checkboxWithTitle: "Re-encode for frame-accurate cuts", target: nil, action: nil)
+    if reencodeRequired {
+      checkbox.state = .on
+      checkbox.isEnabled = false
+      checkbox.toolTip = "Cropping changes the picture, so the video has to be re-encoded."
+      return checkbox
+    }
     checkbox.state = reencodes ? .on : .off
     checkbox.toolTip = """
       Off copies the video without re-encoding: faster and lossless, but the start can only be cut at a keyframe. \

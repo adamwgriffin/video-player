@@ -143,6 +143,26 @@ final class Player {
     startTime > 0 || endTime != nil
   }
 
+  /// The part of the picture to keep when exporting, as fractions of the
+  /// picture's width and height measured from its top left, such as
+  /// (x: 0.1, y: 0, width: 0.8, height: 1). Nil keeps the whole picture.
+  private(set) var cropRect: CGRect?
+
+  /// Whether a crop smaller than the whole picture is set.
+  var isCropped: Bool {
+    guard let cropRect else { return false }
+    return cropRect != CGRect(x: 0, y: 0, width: 1, height: 1)
+  }
+
+  func setCrop(_ rect: CGRect) {
+    cropRect = rect
+  }
+
+  /// Goes back to keeping the whole picture.
+  func removeCrop() {
+    cropRect = nil
+  }
+
   /// Writes the part of the video between the start and end times to a new
   /// file. `progress` is called as the export runs, with values from 0 to 1.
   ///
@@ -150,13 +170,16 @@ final class Player {
   /// makes the cut exact to the frame. With it off, the video is copied as is:
   /// faster and lossless, but it can only cut at keyframes, so the start could
   /// move earlier, and it fails if the codecs aren't allowed in the file type.
-  func exportTrimmed(
+  ///
+  /// If a crop is set, the export is cropped to it too. Cropping changes the
+  /// picture, so it always re-encodes, whatever `reencode` says.
+  func export(
     to url: URL,
     as fileType: AVFileType,
     reencode: Bool,
     progress: @escaping (Double) -> Void
   ) async throws {
-    let preset = reencode ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
+    let preset = reencode || isCropped ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
     guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
       throw CocoaError(.fileWriteUnknown)
     }
@@ -164,6 +187,9 @@ final class Player {
       start: CMTime(seconds: startTime, preferredTimescale: 600),
       end: CMTime(seconds: endTime ?? duration, preferredTimescale: 600)
     )
+    if let cropRect, isCropped {
+      session.videoComposition = try await CropCompositionBuilder(asset: asset, crop: cropRect).build()
+    }
 
     let progressUpdates = Task {
       for await state in session.states(updateInterval: 0.1) {
