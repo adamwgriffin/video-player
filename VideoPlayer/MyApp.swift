@@ -45,7 +45,7 @@ import SwiftUI
         CommandGroup(replacing: .undoRedo) {}
         CommandGroup(replacing: .textEditing) {}
         // As in QuickTime Player, Edit > Copy puts the current frame on the
-        // clipboard as an image. There's no text or other content to copy.
+        // clipboard as an image.
         CommandGroup(replacing: .pasteboard) {
           Button("Copy") {
             Task { await player?.copyCurrentFrame() }
@@ -54,17 +54,16 @@ import SwiftUI
           .disabled(player == nil)
         }
         // Shows or hides the crop tool. The video is only cropped while it's
-        // showing, and Export uses that crop.
+        // showing, and Export uses that crop in the exported video.
         CommandGroup(after: .pasteboard) {
           Divider()
           Toggle(
-            "Crop",
+            "Crop Tool",
             isOn: Binding(
               get: { videoModel.isCropping },
               set: { videoModel.isCropping = $0 }
             )
           )
-          // Cmd-K matches Crop in Preview.
           .keyboardShortcut("k")
           .disabled(player == nil)
         }
@@ -88,43 +87,41 @@ import SwiftUI
           .keyboardShortcut(.space, modifiers: [])
           .disabled(player == nil)
 
-          // The titles and shortcuts change with whether the arrow keys skip
-          // or step.
-          Button(arrowKeysSkip ? "Skip Back" : "Step Back") {
-            player?.skipOrStep(forward: false)
-          }
-          .keyboardShortcut(.leftArrow, modifiers: arrowKeyModifiers)
-          .disabled(player == nil)
-
           Button(arrowKeysSkip ? "Skip Forward" : "Step Forward") {
             player?.skipOrStep(forward: true)
           }
           .keyboardShortcut(.rightArrow, modifiers: arrowKeyModifiers)
           .disabled(player == nil)
 
+          Button(arrowKeysSkip ? "Skip Back" : "Step Back") {
+            player?.skipOrStep(forward: false)
+          }
+          .keyboardShortcut(.leftArrow, modifiers: arrowKeyModifiers)
+          .disabled(player == nil)
+
           Divider()
 
           // I and O are the usual keys for in and out points in video editing
-          // apps, and Shift jumps to them.
-          Button("Set Start Time") {
+          // apps.
+          Button("Set Start") {
             player?.setStartTime()
           }
           .keyboardShortcut("i", modifiers: [])
           .disabled(player == nil)
 
-          Button("Set End Time") {
+          Button("Set End") {
             player?.setEndTime()
           }
           .keyboardShortcut("o", modifiers: [])
           .disabled(player == nil)
 
-          Button("Go to Start Time") {
+          Button("Go to Start") {
             player?.goToStartTime()
           }
           .keyboardShortcut("i", modifiers: .shift)
           .disabled(player == nil)
 
-          Button("Go to End Time") {
+          Button("Go to End") {
             player?.goToEndTime()
           }
           .keyboardShortcut("o", modifiers: .shift)
@@ -132,7 +129,7 @@ import SwiftUI
 
           // Option-X matches Final Cut Pro's Clear Range. Greyed out when
           // the times are already at the beginning and end of the video.
-          Button("Reset Start and End Times") {
+          Button("Reset Start/End") {
             player?.resetStartAndEndTimes()
           }
           .keyboardShortcut("x", modifiers: .option)

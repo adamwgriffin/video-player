@@ -14,8 +14,8 @@ struct PlaybackControls: View {
             .scaleEffect(x: -1)
         }
         .buttonStyle(.plain)
-        .help("Set Start Time")
-        .accessibilityLabel("Set Start Time")
+        .help("Set Start")
+        .accessibilityLabel("Set Start")
 
         Button {
           player.goToStartTime()
@@ -23,8 +23,8 @@ struct PlaybackControls: View {
           Image(systemName: "backward.end.fill")
         }
         .buttonStyle(.plain)
-        .help("Go to Start Time")
-        .accessibilityLabel("Go to Start Time")
+        .help("Go to Start")
+        .accessibilityLabel("Go to Start")
 
         Button {
           player.togglePlayback()
@@ -40,8 +40,8 @@ struct PlaybackControls: View {
           Image(systemName: "forward.end.fill")
         }
         .buttonStyle(.plain)
-        .help("Go to End Time")
-        .accessibilityLabel("Go to End Time")
+        .help("Go to End")
+        .accessibilityLabel("Go to End")
 
         Button {
           player.setEndTime()
@@ -49,8 +49,8 @@ struct PlaybackControls: View {
           Image(systemName: "timer")
         }
         .buttonStyle(.plain)
-        .help("Set End Time")
-        .accessibilityLabel("Set End Time")
+        .help("Set End")
+        .accessibilityLabel("Set End")
       }
 
       Text(formatted(player.currentTime))
