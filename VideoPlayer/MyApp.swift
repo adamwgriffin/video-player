@@ -67,6 +67,18 @@ import SwiftUI
           .keyboardShortcut("k")
           .disabled(player == nil)
         }
+        // Cmd-E matches QuickTime Player's Show
+        // Clips, which also previews frames from the video.
+        CommandGroup(after: .toolbar) {
+          Toggle(
+            "Show Preview on Hover",
+            isOn: Binding(
+              get: { videoModel.showsPreviewThumbnails },
+              set: { videoModel.showsPreviewThumbnails = $0 }
+            )
+          )
+          .keyboardShortcut("e")
+        }
         // As in QuickTime Player, Cmd-I shows details about the video.
         CommandGroup(after: .windowArrangement) {
           Button(

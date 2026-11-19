@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
   @Environment(VideoModel.self) private var videoModel
+  /// The frame at the position hovered over on the seek bar, if any.
+  @State private var seekPreview: SeekPreview?
 
   var body: some View {
     @Bindable var videoModel = videoModel
@@ -32,6 +34,15 @@ struct ContentView: View {
               )
             }
           }
+          // Over the bottom of the video, just above the controls.
+          .overlay {
+            if let seekPreview {
+              SeekPreviewOverlay(
+                preview: seekPreview,
+                attributes: player.thumbnailAttributes
+              )
+            }
+          }
         if !videoModel.isFullScreen {
           if videoModel.isCropping {
             CropToolbar(
@@ -42,7 +53,11 @@ struct ContentView: View {
               onSubmit: { videoModel.applyPendingCropSize() }
             )
           }
-          PlaybackControls(player: player)
+          PlaybackControls(
+            player: player,
+            showsSeekPreview: videoModel.showsPreviewThumbnails,
+            seekPreview: $seekPreview
+          )
         }
       }
       .overlay(alignment: .top) {

@@ -3,6 +3,10 @@ import SwiftUI
 /// Play/pause button, elapsed and total time, and the seek bar.
 struct PlaybackControls: View {
   let player: Player
+  /// Whether hovering over the seek bar loads a preview of the frame there.
+  let showsSeekPreview: Bool
+  /// The frame at the position hovered over on the seek bar, if any.
+  @Binding var seekPreview: SeekPreview?
 
   var body: some View {
     HStack(spacing: 12) {
@@ -56,7 +60,8 @@ struct PlaybackControls: View {
       Text(formatted(player.currentTime))
         .monospacedDigit()
 
-      SeekBar(player: player)
+      SeekBar(
+        player: player, showsPreview: showsSeekPreview, preview: $seekPreview)
 
       Text(formatted(player.duration))
         .monospacedDigit()
