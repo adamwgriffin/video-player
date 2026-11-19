@@ -133,6 +133,10 @@ final class VideoModel {
     didSet { player?.isLooping = isLooping }
   }
 
+  /// Whether hovering over the seek bar shows a preview of the frame there.
+  /// On by default.
+  var showsPreviewThumbnails = true
+
   // The sandbox only grants access to a chosen file while this is held open.
   private var accessedURL: URL?
   private var currentURL: URL?

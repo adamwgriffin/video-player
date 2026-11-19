@@ -8,6 +8,10 @@ import Observation
 final class Player {
   let queuePlayer = AVQueuePlayer()
   private let asset: AVAsset
+  /// How previews of the video's frames are shown and how large they're made.
+  let thumbnailAttributes = ThumbnailAttributes()
+  /// Makes small previews of the video's frames.
+  let thumbnailer: FrameThumbnailer
 
   /// Whether the video starts over when it reaches the end.
   var isLooping: Bool
@@ -33,6 +37,8 @@ final class Player {
   init(url: URL, looping: Bool) {
     let item = AVPlayerItem(url: url)
     asset = item.asset
+    thumbnailer = FrameThumbnailer(
+      asset: item.asset, maximumSize: thumbnailAttributes.maximumPixelSize)
     isLooping = looping
 
     // Stop on the last frame at the end, rather than removing the video from
