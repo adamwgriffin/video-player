@@ -14,6 +14,10 @@ opening_brace:
   ignore_multiline_statement_conditions: true
   ignore_multiline_function_signatures: true
 
+# Keep functions short. Blank lines and comments don't count.
+function_body_length:
+  warning: 20
+
 # Allow names of any length, such as `x`, `dx`, or `a`.
 identifier_name:
   min_length:
