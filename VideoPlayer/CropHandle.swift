@@ -7,15 +7,20 @@ enum CropHandle: CaseIterable {
 
   /// Where the handle sits on the rectangle.
   func position(in rect: CGRect) -> CGPoint {
-    let x: CGFloat = movesLeftEdge ? rect.minX : movesRightEdge ? rect.maxX : rect.midX
-    let y: CGFloat = movesTopEdge ? rect.minY : movesBottomEdge ? rect.maxY : rect.midY
+    let x: CGFloat =
+      movesLeftEdge ? rect.minX : movesRightEdge ? rect.maxX : rect.midX
+    let y: CGFloat =
+      movesTopEdge ? rect.minY : movesBottomEdge ? rect.maxY : rect.midY
     return CGPoint(x: x, y: y)
   }
 
   /// The rectangle after dragging this handle by dx and dy. All values are
   /// fractions of the picture, so the result stays between 0 and 1 and never
   /// gets smaller than the minimum size.
-  func resize(_ rect: CGRect, dx: CGFloat, dy: CGFloat, minWidth: CGFloat, minHeight: CGFloat) -> CGRect {
+  func resize(
+    _ rect: CGRect, dx: CGFloat, dy: CGFloat, minWidth: CGFloat,
+    minHeight: CGFloat
+  ) -> CGRect {
     var minX = rect.minX
     var maxX = rect.maxX
     var minY = rect.minY
@@ -40,10 +45,14 @@ enum CropHandle: CaseIterable {
     minHeight: CGFloat
   ) -> CGRect {
     guard rect.width > 0, rect.height > 0 else { return rect }
-    let dragged = resize(rect, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
+    let dragged = resize(
+      rect, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
     let anchor = opposite.position(in: rect)
-    let limits = scaleLimits(for: rect, anchoredAt: anchor, minWidth: minWidth, minHeight: minHeight)
-    let scale = min(max(dragScale(from: rect, to: dragged), limits.lowerBound), limits.upperBound)
+    let limits = scaleLimits(
+      for: rect, anchoredAt: anchor, minWidth: minWidth, minHeight: minHeight)
+    let scale = min(
+      max(dragScale(from: rect, to: dragged), limits.lowerBound),
+      limits.upperBound)
     return scaled(rect, by: scale, anchoredAt: anchor)
   }
 
@@ -68,7 +77,9 @@ enum CropHandle: CaseIterable {
     let widthScale = dragged.width / rect.width
     let heightScale = dragged.height / rect.height
     switch (movesHorizontally, movesVertically) {
-    case (true, true): return abs(widthScale - 1) >= abs(heightScale - 1) ? widthScale : heightScale
+    case (true, true):
+      return abs(widthScale - 1) >= abs(heightScale - 1)
+        ? widthScale : heightScale
     case (true, false): return widthScale
     default: return heightScale
     }
@@ -95,18 +106,27 @@ enum CropHandle: CaseIterable {
   /// so the room is twice the distance to the nearer edge.
   private func roomToGrow(from anchor: CGPoint) -> CGSize {
     CGSize(
-      width: movesLeftEdge ? anchor.x : movesRightEdge ? 1 - anchor.x : 2 * min(anchor.x, 1 - anchor.x),
-      height: movesTopEdge ? anchor.y : movesBottomEdge ? 1 - anchor.y : 2 * min(anchor.y, 1 - anchor.y)
+      width: movesLeftEdge
+        ? anchor.x
+        : movesRightEdge ? 1 - anchor.x : 2 * min(anchor.x, 1 - anchor.x),
+      height: movesTopEdge
+        ? anchor.y
+        : movesBottomEdge ? 1 - anchor.y : 2 * min(anchor.y, 1 - anchor.y)
     )
   }
 
   /// The rectangle at the given scale, placed so the anchor stays where it is.
-  private func scaled(_ rect: CGRect, by scale: CGFloat, anchoredAt anchor: CGPoint) -> CGRect {
+  private func scaled(
+    _ rect: CGRect, by scale: CGFloat, anchoredAt anchor: CGPoint
+  ) -> CGRect {
     let width = rect.width * scale
     let height = rect.height * scale
     return CGRect(
-      x: movesLeftEdge ? anchor.x - width : movesRightEdge ? anchor.x : anchor.x - width / 2,
-      y: movesTopEdge ? anchor.y - height : movesBottomEdge ? anchor.y : anchor.y - height / 2,
+      x: movesLeftEdge
+        ? anchor.x - width : movesRightEdge ? anchor.x : anchor.x - width / 2,
+      y: movesTopEdge
+        ? anchor.y - height
+        : movesBottomEdge ? anchor.y : anchor.y - height / 2,
       width: width,
       height: height
     )
@@ -114,8 +134,14 @@ enum CropHandle: CaseIterable {
 
   private var movesHorizontally: Bool { movesLeftEdge || movesRightEdge }
   private var movesVertically: Bool { movesTopEdge || movesBottomEdge }
-  private var movesLeftEdge: Bool { [.topLeft, .left, .bottomLeft].contains(self) }
-  private var movesRightEdge: Bool { [.topRight, .right, .bottomRight].contains(self) }
+  private var movesLeftEdge: Bool {
+    [.topLeft, .left, .bottomLeft].contains(self)
+  }
+  private var movesRightEdge: Bool {
+    [.topRight, .right, .bottomRight].contains(self)
+  }
   private var movesTopEdge: Bool { [.topLeft, .top, .topRight].contains(self) }
-  private var movesBottomEdge: Bool { [.bottomLeft, .bottom, .bottomRight].contains(self) }
+  private var movesBottomEdge: Bool {
+    [.bottomLeft, .bottom, .bottomRight].contains(self)
+  }
 }

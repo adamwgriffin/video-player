@@ -18,7 +18,8 @@ final class VideoWindow: NSWindow {
     // Windows only report mouse movement when asked to, which the full screen
     // pointer hiding relies on.
     acceptsMouseMovedEvents = true
-    contentViewController = NSHostingController(rootView: ContentView().environment(videoModel))
+    contentViewController = NSHostingController(
+      rootView: ContentView().environment(videoModel))
 
     // visibleFrame excludes the menu bar and Dock.
     if let visibleFrame = NSScreen.main?.visibleFrame {
@@ -45,7 +46,9 @@ final class VideoWindow: NSWindow {
   /// keys it needs for typing. This checks what has focus at the moment of
   /// each key press.
   override func performKeyEquivalent(with event: NSEvent) -> Bool {
-    if let textEditor = firstResponder as? NSText, !event.modifierFlags.contains(.command) {
+    if let textEditor = firstResponder as? NSText,
+      !event.modifierFlags.contains(.command)
+    {
       textEditor.keyDown(with: event)
       return true
     }

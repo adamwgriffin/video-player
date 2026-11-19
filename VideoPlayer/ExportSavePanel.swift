@@ -27,7 +27,8 @@ struct ExportSavePanel {
 
     let reencodeCheckbox = makeReencodeCheckbox()
     let accessory = NSStackView(views: [reencodeCheckbox])
-    accessory.edgeInsets = NSEdgeInsets(top: 12, left: 20, bottom: 12, right: 20)
+    accessory.edgeInsets = NSEdgeInsets(
+      top: 12, left: 20, bottom: 12, right: 20)
     panel.accessoryView = accessory
 
     guard panel.runModal() == .OK, let url = panel.url else { return nil }
@@ -36,17 +37,21 @@ struct ExportSavePanel {
 
   /// A checkbox under the save dialog's file browser.
   private func makeReencodeCheckbox() -> NSButton {
-    let checkbox = NSButton(checkboxWithTitle: "Re-encode for frame-accurate cuts", target: nil, action: nil)
+    let checkbox = NSButton(
+      checkboxWithTitle: "Re-encode for frame-accurate cuts", target: nil,
+      action: nil)
     if reencodeRequired {
       checkbox.state = .on
       checkbox.isEnabled = false
-      checkbox.toolTip = "Cropping changes the picture, so the video has to be re-encoded."
+      checkbox.toolTip =
+        "Cropping changes the picture, so the video has to be re-encoded."
       return checkbox
     }
     checkbox.state = reencodes ? .on : .off
     checkbox.toolTip = """
-      Off copies the video without re-encoding: faster and lossless, but the start can only be cut at a keyframe. \
-      Videos whose codecs MP4 doesn't allow will fail unless you enable this.
+      Off copies the video without re-encoding: faster and lossless, but the \
+      start can only be cut at a keyframe. Videos whose codecs MP4 doesn't \
+      allow will fail unless you enable this.
       """
     return checkbox
   }

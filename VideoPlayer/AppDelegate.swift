@@ -33,7 +33,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Track Option so the Playback menu can switch the arrow keys between
     // stepping and skipping as it's pressed and released.
-    modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
+    modifierKeysMonitor = NSEvent.addLocalMonitorForEvents(
+      matching: .flagsChanged
+    ) { [weak self] event in
       self?.videoModel.skipWhilePaused = event.modifierFlags.contains(.option)
       return event
     }
@@ -86,8 +88,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   /// Hides the pointer after the mouse has been still for a couple of seconds.
   /// The system shows it again as soon as the mouse moves.
   private func startHidingCursorWhenIdle() {
-    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) {
-      [weak self] event in
+    mouseMovedMonitor = NSEvent.addLocalMonitorForEvents(
+      matching: .mouseMoved
+    ) { [weak self] event in
       MainActor.assumeIsolated { self?.scheduleCursorHide() }
       return event
     }
@@ -139,7 +142,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
   func windowWillClose(_ notification: Notification) {
     // Compare against each window directly. Comparing optionals would treat a
-    // never-opened inspector (nil) as a match for any window that isn't a panel.
+    // never-opened inspector (nil) as a match for any window that isn't a
+    // panel.
     guard let closingWindow = notification.object as? NSWindow else { return }
 
     if closingWindow === inspectorPanel {

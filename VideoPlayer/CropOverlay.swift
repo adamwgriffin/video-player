@@ -30,7 +30,8 @@ struct CropOverlay: View {
   var body: some View {
     GeometryReader { geometry in
       let videoFrame = Self.aspectFitFrame(for: videoSize, in: geometry.size)
-      let crop = Self.viewRect(for: player.cropRect ?? Self.wholePicture, in: videoFrame)
+      let crop = Self.viewRect(
+        for: player.cropRect ?? Self.wholePicture, in: videoFrame)
 
       ZStack(alignment: .topLeading) {
         // Everything outside the crop: the whole view with the crop cut out.
@@ -59,7 +60,9 @@ struct CropOverlay: View {
             .frame(width: handleSize, height: handleSize)
             .frame(width: handleHitSize, height: handleHitSize)
             .contentShape(Rectangle())
-            .pointerStyle(.frameResize(position: Self.resizePosition(for: handle)))
+            .pointerStyle(
+              .frameResize(position: Self.resizePosition(for: handle))
+            )
             .position(handle.position(in: crop))
             .gesture(drag(handle: handle, videoFrame: videoFrame))
         }
@@ -71,10 +74,15 @@ struct CropOverlay: View {
   private func marchingAnts(around rect: CGRect) -> some View {
     TimelineView(.animation) { context in
       // Moves 16 points a second, repeating every 8 points: one dash and gap.
-      let phase = (context.date.timeIntervalSinceReferenceDate * 16).truncatingRemainder(dividingBy: 8)
+      let phase = (context.date.timeIntervalSinceReferenceDate * 16)
+        .truncatingRemainder(dividingBy: 8)
       ZStack {
-        Path(rect).stroke(.black, style: StrokeStyle(lineWidth: 1, dash: [4, 4], dashPhase: phase))
-        Path(rect).stroke(.white, style: StrokeStyle(lineWidth: 1, dash: [4, 4], dashPhase: phase + 4))
+        Path(rect).stroke(
+          .black,
+          style: StrokeStyle(lineWidth: 1, dash: [4, 4], dashPhase: phase))
+        Path(rect).stroke(
+          .white,
+          style: StrokeStyle(lineWidth: 1, dash: [4, 4], dashPhase: phase + 4))
       }
     }
     .allowsHitTesting(false)
@@ -85,26 +93,7 @@ struct CropOverlay: View {
   private func drag(handle: CropHandle?, videoFrame: CGRect) -> some Gesture {
     DragGesture(minimumDistance: 2)
       .onChanged { value in
-        let start = dragStartRect ?? player.cropRect ?? Self.wholePicture
-        if dragStartRect == nil { dragStartRect = start }
-
-        // The drag as fractions of the picture, to match the crop rectangle.
-        let dx = value.translation.width / videoFrame.width
-        let dy = value.translation.height / videoFrame.height
-        if handle == nil, !isMoving {
-          isMoving = true
-        }
-        if let handle {
-          let minWidth = minimumCropSize / videoFrame.width
-          let minHeight = minimumCropSize / videoFrame.height
-          player.setCrop(
-            keepsShape
-              ? handle.resizeKeepingShape(start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
-              : handle.resize(start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
-          )
-        } else {
-          player.setCrop(Self.move(start, dx: dx, dy: dy))
-        }
+        dragChanged(value, handle: handle, videoFrame: videoFrame)
       }
       .onEnded { _ in
         dragStartRect = nil
@@ -112,9 +101,37 @@ struct CropOverlay: View {
       }
   }
 
+  /// Moves or resizes the crop to follow a drag that has changed.
+  private func dragChanged(
+    _ value: DragGesture.Value, handle: CropHandle?, videoFrame: CGRect
+  ) {
+    let start = dragStartRect ?? player.cropRect ?? Self.wholePicture
+    if dragStartRect == nil { dragStartRect = start }
+
+    // The drag as fractions of the picture, to match the crop rectangle.
+    let dx = value.translation.width / videoFrame.width
+    let dy = value.translation.height / videoFrame.height
+    guard let handle else {
+      if !isMoving { isMoving = true }
+      player.setCrop(Self.move(start, dx: dx, dy: dy))
+      return
+    }
+    let minWidth = minimumCropSize / videoFrame.width
+    let minHeight = minimumCropSize / videoFrame.height
+    player.setCrop(
+      keepsShape
+        ? handle.resizeKeepingShape(
+          start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
+        : handle.resize(
+          start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
+    )
+  }
+
   /// Which edge or corner a handle resizes from, so the pointer shows the
   /// system's resize arrows for it.
-  private static func resizePosition(for handle: CropHandle) -> FrameResizePosition {
+  private static func resizePosition(for handle: CropHandle)
+    -> FrameResizePosition
+  {
     switch handle {
     case .topLeft: .topLeading
     case .top: .top
@@ -137,10 +154,16 @@ struct CropOverlay: View {
 
   /// Where the picture sits in the view: as large as fits, keeping its shape,
   /// and centered, which is how video is normally fitted to a view.
-  private static func aspectFitFrame(for videoSize: CGSize, in viewSize: CGSize) -> CGRect {
-    guard videoSize.width > 0, videoSize.height > 0 else { return CGRect(origin: .zero, size: viewSize) }
-    let scale = min(viewSize.width / videoSize.width, viewSize.height / videoSize.height)
-    let size = CGSize(width: videoSize.width * scale, height: videoSize.height * scale)
+  private static func aspectFitFrame(for videoSize: CGSize, in viewSize: CGSize)
+    -> CGRect
+  {
+    guard videoSize.width > 0, videoSize.height > 0 else {
+      return CGRect(origin: .zero, size: viewSize)
+    }
+    let scale = min(
+      viewSize.width / videoSize.width, viewSize.height / videoSize.height)
+    let size = CGSize(
+      width: videoSize.width * scale, height: videoSize.height * scale)
     return CGRect(
       x: (viewSize.width - size.width) / 2,
       y: (viewSize.height - size.height) / 2,
@@ -151,7 +174,9 @@ struct CropOverlay: View {
 
   /// Converts a crop rectangle in fractions of the picture to points in the
   /// view.
-  private static func viewRect(for crop: CGRect, in videoFrame: CGRect) -> CGRect {
+  private static func viewRect(for crop: CGRect, in videoFrame: CGRect)
+    -> CGRect
+  {
     CGRect(
       x: videoFrame.minX + crop.minX * videoFrame.width,
       y: videoFrame.minY + crop.minY * videoFrame.height,
