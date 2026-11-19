@@ -40,6 +40,20 @@ final class Player {
     queuePlayer.actionAtItemEnd = .pause
     queuePlayer.insert(item, after: nil)
 
+    observeEnd(of: item)
+    loadDetails(url: url)
+    observeTime()
+  }
+
+  deinit {
+    if let timeObserver {
+      queuePlayer.removeTimeObserver(timeObserver)
+    }
+    endObserver?.cancel()
+  }
+
+  /// Calls itemDidReachEnd() each time the item plays to its end.
+  private func observeEnd(of item: AVPlayerItem) {
     endObserver = Task { [weak self] in
       let ends = NotificationCenter.default.notifications(
         named: AVPlayerItem.didPlayToEndTimeNotification,
@@ -49,18 +63,24 @@ final class Player {
         self?.itemDidReachEnd()
       }
     }
+  }
 
+  /// Loads the video's length and file details in the background.
+  private func loadDetails(url: URL) {
     Task {
-      let length = try? await item.asset.load(.duration).seconds
+      let length = try? await asset.load(.duration).seconds
       if let length, length.isFinite {
         duration = length
       }
     }
 
     Task {
-      info = await VideoInfoLoader(url: url, asset: item.asset).load()
+      info = await VideoInfoLoader(url: url, asset: asset).load()
     }
+  }
 
+  /// Keeps currentTime and isPlaying up to date while the video plays.
+  private func observeTime() {
     // The observer is delivered on the main queue, so it's safe to update
     // the main-actor state directly.
     timeObserver = queuePlayer.addPeriodicTimeObserver(
@@ -73,13 +93,6 @@ final class Player {
         self.isPlaying = self.queuePlayer.rate != 0
       }
     }
-  }
-
-  deinit {
-    if let timeObserver {
-      queuePlayer.removeTimeObserver(timeObserver)
-    }
-    endObserver?.cancel()
   }
 
   private func itemDidReachEnd() {
@@ -181,6 +194,27 @@ final class Player {
     reencode: Bool,
     progress: @escaping (Double) -> Void
   ) async throws {
+    let session = try await makeExportSession(reencode: reencode)
+    let progressUpdates = Task {
+      for await state in session.states(updateInterval: 0.1) {
+        if case .exporting(let exportProgress) = state {
+          progress(exportProgress.fractionCompleted)
+        }
+      }
+    }
+    defer { progressUpdates.cancel() }
+
+    // The save panel has already confirmed replacing an existing file, and
+    // the export fails if one is in the way.
+    try? FileManager.default.removeItem(at: url)
+    try await session.export(to: url, as: fileType)
+  }
+
+  /// An export session for the part between the start and end times, cropped
+  /// if a crop is set. See export(to:as:reencode:progress:) for `reencode`.
+  private func makeExportSession(reencode: Bool) async throws
+    -> AVAssetExportSession
+  {
     let preset =
       reencode || isCropped
       ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
@@ -197,20 +231,7 @@ final class Player {
         asset: asset, crop: cropRect
       ).build()
     }
-
-    let progressUpdates = Task {
-      for await state in session.states(updateInterval: 0.1) {
-        if case .exporting(let exportProgress) = state {
-          progress(exportProgress.fractionCompleted)
-        }
-      }
-    }
-    defer { progressUpdates.cancel() }
-
-    // The save panel has already confirmed replacing an existing file, and
-    // the export fails if one is in the way.
-    try? FileManager.default.removeItem(at: url)
-    try await session.export(to: url, as: fileType)
+    return session
   }
 
   /// Puts the start and end times back to the beginning and end of the video.

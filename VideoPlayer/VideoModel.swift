@@ -192,12 +192,17 @@ final class VideoModel {
     if !player.isCropped {
       reencodesExports = choice.reencode
     }
+    startExport(of: player, to: choice.url, reencode: choice.reencode)
+  }
 
+  /// Exports the player's video as MPEG-4 in the background, keeping
+  /// exportProgress up to date and showing an alert if it fails.
+  private func startExport(of player: Player, to url: URL, reencode: Bool) {
     exportProgress = 0
     Task {
       do {
         try await player.export(
-          to: choice.url, as: .mp4, reencode: choice.reencode
+          to: url, as: .mp4, reencode: reencode
         ) { fraction in
           self.exportProgress = fraction
         }

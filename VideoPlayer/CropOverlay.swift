@@ -93,33 +93,38 @@ struct CropOverlay: View {
   private func drag(handle: CropHandle?, videoFrame: CGRect) -> some Gesture {
     DragGesture(minimumDistance: 2)
       .onChanged { value in
-        let start = dragStartRect ?? player.cropRect ?? Self.wholePicture
-        if dragStartRect == nil { dragStartRect = start }
-
-        // The drag as fractions of the picture, to match the crop rectangle.
-        let dx = value.translation.width / videoFrame.width
-        let dy = value.translation.height / videoFrame.height
-        if handle == nil, !isMoving {
-          isMoving = true
-        }
-        if let handle {
-          let minWidth = minimumCropSize / videoFrame.width
-          let minHeight = minimumCropSize / videoFrame.height
-          player.setCrop(
-            keepsShape
-              ? handle.resizeKeepingShape(
-                start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
-              : handle.resize(
-                start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
-          )
-        } else {
-          player.setCrop(Self.move(start, dx: dx, dy: dy))
-        }
+        dragChanged(value, handle: handle, videoFrame: videoFrame)
       }
       .onEnded { _ in
         dragStartRect = nil
         isMoving = false
       }
+  }
+
+  /// Moves or resizes the crop to follow a drag that has changed.
+  private func dragChanged(
+    _ value: DragGesture.Value, handle: CropHandle?, videoFrame: CGRect
+  ) {
+    let start = dragStartRect ?? player.cropRect ?? Self.wholePicture
+    if dragStartRect == nil { dragStartRect = start }
+
+    // The drag as fractions of the picture, to match the crop rectangle.
+    let dx = value.translation.width / videoFrame.width
+    let dy = value.translation.height / videoFrame.height
+    guard let handle else {
+      if !isMoving { isMoving = true }
+      player.setCrop(Self.move(start, dx: dx, dy: dy))
+      return
+    }
+    let minWidth = minimumCropSize / videoFrame.width
+    let minHeight = minimumCropSize / videoFrame.height
+    player.setCrop(
+      keepsShape
+        ? handle.resizeKeepingShape(
+          start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
+        : handle.resize(
+          start, dx: dx, dy: dy, minWidth: minWidth, minHeight: minHeight)
+    )
   }
 
   /// Which edge or corner a handle resizes from, so the pointer shows the
