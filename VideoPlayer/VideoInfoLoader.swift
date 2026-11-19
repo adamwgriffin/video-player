@@ -27,22 +27,28 @@ struct VideoInfoLoader {
 
   /// The readable name of the track's codec, such as "H.264".
   private func codec(of track: AVAssetTrack?) async -> String? {
-    guard let description = await formatDescription(of: track) else { return nil }
+    guard let description = await formatDescription(of: track) else {
+      return nil
+    }
     return codecName(CMFormatDescriptionGetMediaSubType(description))
   }
 
   /// Samples per second of an audio track, such as 48000.
   private func sampleRate(of track: AVAssetTrack?) async -> Double? {
-    guard let description = await formatDescription(of: track) else { return nil }
-    return CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee.mSampleRate
+    guard let description = await formatDescription(of: track) else {
+      return nil
+    }
+    return CMAudioFormatDescriptionGetStreamBasicDescription(description)?
+      .pointee.mSampleRate
   }
 
   /// Width and height in pixels, with any rotation applied, so a portrait
   /// phone video is taller than it is wide.
   private func pixelSize(of track: AVAssetTrack?) async -> CGSize? {
     guard let track,
-          let (naturalSize, transform) = try? await track.load(.naturalSize, .preferredTransform)
-            else { return nil }
+      let (naturalSize, transform) = try? await track.load(
+        .naturalSize, .preferredTransform)
+    else { return nil }
     let size = naturalSize.applying(transform)
     return CGSize(width: abs(size.width), height: abs(size.height))
   }
@@ -86,7 +92,9 @@ struct VideoInfoLoader {
       .id3MetadataComments
     ]
     for identifier in identifiers {
-      for item in AVMetadataItem.metadataItems(from: metadata + commonMetadata, filteredByIdentifier: identifier) {
+      for item in AVMetadataItem.metadataItems(
+        from: metadata + commonMetadata, filteredByIdentifier: identifier)
+      {
         if let value = try? await item.load(.stringValue), !value.isEmpty {
           return value
         }
@@ -96,7 +104,9 @@ struct VideoInfoLoader {
   }
 
   /// The track's first format description, which says how it's encoded.
-  private func formatDescription(of track: AVAssetTrack?) async -> CMFormatDescription? {
+  private func formatDescription(of track: AVAssetTrack?) async
+    -> CMFormatDescription?
+  {
     guard let track else { return nil }
     return try? await track.load(.formatDescriptions).first
   }
@@ -104,12 +114,16 @@ struct VideoInfoLoader {
   /// Readable codec names, keyed by four-character code, such as "avc1" for
   /// "H.264". Read once from CodecNames.plist in the app bundle.
   private static let codecNames: [String: String] = {
-    guard let url = Bundle.main.url(forResource: "CodecNames", withExtension: "plist"),
+    guard
+      let url = Bundle.main.url(
+        forResource: "CodecNames", withExtension: "plist"),
       let data = try? Data(contentsOf: url),
-      let names = try? PropertyListDecoder().decode([String: String].self, from: data)
+      let names = try? PropertyListDecoder().decode(
+        [String: String].self, from: data)
     else {
       // Codecs would still show, as their raw codes, so only stop debug builds.
-      assertionFailure("CodecNames.plist is missing from the app bundle or isn't valid")
+      assertionFailure(
+        "CodecNames.plist is missing from the app bundle or isn't valid")
       return [:]
     }
     return names
@@ -123,6 +137,7 @@ struct VideoInfoLoader {
         bytes: [24, 16, 8, 0].map { UInt8((code >> $0) & 0xff) },
         encoding: .macOSRoman
       ) ?? ""
-    return Self.codecNames[fourCC] ?? fourCC.trimmingCharacters(in: .whitespaces)
+    return Self.codecNames[fourCC]
+      ?? fourCC.trimmingCharacters(in: .whitespaces)
   }
 }

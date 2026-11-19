@@ -75,7 +75,9 @@ struct SeekBar: View {
   }
 
   /// A thin colored line across the track, kept fully inside it at both ends.
-  private func rangeMarker(_ color: Color, at fraction: Double, in width: CGFloat) -> some View {
+  private func rangeMarker(
+    _ color: Color, at fraction: Double, in width: CGFloat
+  ) -> some View {
     Rectangle()
       .fill(color)
       .frame(width: rangeMarkerSize.width, height: rangeMarkerSize.height)

@@ -100,7 +100,9 @@ final class Player {
       // With looping off, playing again after the end starts from the start
       // time. The end is the end time if it applies.
       if let item = queuePlayer.currentItem {
-        let end = item.forwardPlaybackEndTime.isValid ? item.forwardPlaybackEndTime : item.duration
+        let end =
+          item.forwardPlaybackEndTime.isValid
+          ? item.forwardPlaybackEndTime : item.duration
         if item.currentTime() >= end {
           seekToStartTime()
         }
@@ -179,8 +181,11 @@ final class Player {
     reencode: Bool,
     progress: @escaping (Double) -> Void
   ) async throws {
-    let preset = reencode || isCropped ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
-    guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
+    let preset =
+      reencode || isCropped
+      ? AVAssetExportPresetHighestQuality : AVAssetExportPresetPassthrough
+    guard let session = AVAssetExportSession(asset: asset, presetName: preset)
+    else {
       throw CocoaError(.fileWriteUnknown)
     }
     session.timeRange = CMTimeRange(
@@ -188,7 +193,9 @@ final class Player {
       end: CMTime(seconds: endTime ?? duration, preferredTimescale: 600)
     )
     if let cropRect, isCropped {
-      session.videoComposition = try await CropCompositionBuilder(asset: asset, crop: cropRect).build()
+      session.videoComposition = try await CropCompositionBuilder(
+        asset: asset, crop: cropRect
+      ).build()
     }
 
     let progressUpdates = Task {
@@ -231,7 +238,8 @@ final class Player {
     if let endTime, position <= endTime {
       // Playback treats this as the end of the video, so looping and stopping
       // at the end happen here.
-      item.forwardPlaybackEndTime = CMTime(seconds: endTime, preferredTimescale: 600)
+      item.forwardPlaybackEndTime = CMTime(
+        seconds: endTime, preferredTimescale: 600)
     } else {
       item.forwardPlaybackEndTime = .invalid
     }

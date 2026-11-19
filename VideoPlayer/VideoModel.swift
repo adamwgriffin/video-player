@@ -14,8 +14,8 @@ final class VideoModel {
   /// Whether the window is full screen, when the controls are hidden.
   var isFullScreen = false
 
-  /// Whether a keyboard modifier is held down, which makes the arrow keys skip instead of
-  /// step while paused. Kept up to date by the app delegate.
+  /// Whether a keyboard modifier is held down, which makes the arrow keys skip
+  /// instead of step while paused. Kept up to date by the app delegate.
   var skipWhilePaused = false
 
   /// Whether the movie inspector panel is showing, for the menu item's title.
@@ -23,7 +23,8 @@ final class VideoModel {
 
   /// Where a new crop starts: inset 10% from each edge of the picture, so its
   /// handles aren't on the edge of the video and are easy to grab.
-  private static let initialCrop = CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.8)
+  private static let initialCrop = CGRect(
+    x: 0.1, y: 0.1, width: 0.8, height: 0.8)
 
   /// Whether the crop tool is showing over the video. The video is only
   /// cropped while it is: showing it starts a new crop, inset from the edges
@@ -50,7 +51,9 @@ final class VideoModel {
     didSet {
       guard let player, let videoSize = player.info?.pixelSize else { return }
       let wholePicture = CGRect(x: 0, y: 0, width: 1, height: 1)
-      player.setCrop(cropAspectRatio.fit(player.cropRect ?? wholePicture, videoSize: videoSize))
+      player.setCrop(
+        cropAspectRatio.fit(
+          player.cropRect ?? wholePicture, videoSize: videoSize))
     }
   }
 
@@ -59,7 +62,9 @@ final class VideoModel {
   var cropPixelSize: CGSize? {
     guard let player, let videoSize = player.info?.pixelSize else { return nil }
     let crop = player.cropRect ?? CGRect(x: 0, y: 0, width: 1, height: 1)
-    return CGSize(width: crop.width * videoSize.width, height: crop.height * videoSize.height)
+    return CGSize(
+      width: crop.width * videoSize.width,
+      height: crop.height * videoSize.height)
   }
 
   /// Sets the crop's width or height in the video's pixels. With a ratio
@@ -67,7 +72,9 @@ final class VideoModel {
   func setCropSize(width: CGFloat? = nil, height: CGFloat? = nil) {
     guard let player, let videoSize = player.info?.pixelSize else { return }
     let crop = player.cropRect ?? CGRect(x: 0, y: 0, width: 1, height: 1)
-    player.setCrop(cropAspectRatio.resized(crop, width: width, height: height, videoSize: videoSize))
+    player.setCrop(
+      cropAspectRatio.resized(
+        crop, width: width, height: height, videoSize: videoSize))
   }
 
   /// A width or height typed into the crop toolbar but not applied yet. Text
@@ -189,7 +196,9 @@ final class VideoModel {
     exportProgress = 0
     Task {
       do {
-        try await player.export(to: choice.url, as: .mp4, reencode: choice.reencode) { fraction in
+        try await player.export(
+          to: choice.url, as: .mp4, reencode: choice.reencode
+        ) { fraction in
           self.exportProgress = fraction
         }
       } catch {
